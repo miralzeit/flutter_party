@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import 'set_up_profile_screen.dart';
+import 'onboarding/onboarding_flow.dart';
 
 /// Shown right after a vendor completes registration, while their business
 /// information is pending manual verification.
@@ -65,7 +65,7 @@ class AccountUnderReviewScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const SetUpProfileScreen()),
+                        MaterialPageRoute(builder: (_) => const OnboardingFlow()),
                       ),
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
                       child: const Text('Continue'),

@@ -5,25 +5,10 @@ import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
 import '../widgets/photo_upload.dart';
 
-class _DetailRow {
-  _DetailRow({String label = '', String value = ''})
-      : labelCtrl = TextEditingController(text: label),
-        valueCtrl = TextEditingController(text: value);
-
-  final TextEditingController labelCtrl;
-  final TextEditingController valueCtrl;
-
-  void dispose() {
-    labelCtrl.dispose();
-    valueCtrl.dispose();
-  }
-}
-
 /// Screen 8 — "Add / Edit Service". The single most-reused screen in the
-/// vendor flow: the same name/description/price/details form works whether
-/// the business is a wedding hall (Capacity, Garden, Swimming Pool) or a
-/// salon (Duration, Products, Home Service) — only the label text differs,
-/// and vendors type that themselves via the free-form detail rows.
+/// vendor flow: the same name/category/description/price/details form
+/// works for any business type — vendors add their own free-form detail
+/// rows (Capacity, Duration, Home Service, ...) via the "Add Detail" sheet.
 class AddEditServiceScreen extends StatefulWidget {
   const AddEditServiceScreen({super.key, this.initial, required this.onSubmit});
 
@@ -35,14 +20,15 @@ class AddEditServiceScreen extends StatefulWidget {
 }
 
 class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
+  final _formKey = GlobalKey<FormState>();
   late final _nameCtrl = TextEditingController(text: widget.initial?.name ?? '');
   late final _descriptionCtrl = TextEditingController(text: widget.initial?.description ?? '');
   late final _priceCtrl = TextEditingController(text: widget.initial?.price?.toString() ?? '');
-  late int _photoCount = widget.initial == null ? 0 : 1;
-
-  late final List<_DetailRow> _details = widget.initial != null && widget.initial!.details.isNotEmpty
-      ? [for (final d in widget.initial!.details) _DetailRow(label: d.label, value: d.value)]
-      : [_DetailRow(label: 'Capacity'), _DetailRow(label: 'Garden'), _DetailRow(label: 'Swimming Pool')];
+  late String _category = widget.initial?.category.isNotEmpty == true ? widget.initial!.category : serviceCategories.first;
+  late int _photoCount = widget.initial?.photoCount ?? 0;
+  late final List<ServiceDetail> _details = [
+    for (final d in widget.initial?.details ?? const <ServiceDetail>[]) ServiceDetail(label: d.label, value: d.value),
+  ];
 
   bool get _isEditing => widget.initial != null;
 
@@ -51,36 +37,33 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
     _nameCtrl.dispose();
     _descriptionCtrl.dispose();
     _priceCtrl.dispose();
-    for (final detail in _details) {
-      detail.dispose();
-    }
     super.dispose();
   }
 
-  void _addDetailRow() => setState(() => _details.add(_DetailRow()));
+  Future<void> _addDetail() async {
+    final detail = await showModalBottomSheet<ServiceDetail>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const _AddDetailSheet(),
+    );
+    if (detail != null) setState(() => _details.add(detail));
+  }
 
-  void _removeDetailRow(_DetailRow row) => setState(() {
-        _details.remove(row);
-        row.dispose();
-      });
+  void _removeDetail(ServiceDetail detail) => setState(() => _details.remove(detail));
 
   void _save() {
-    if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a service name.')),
-      );
-      return;
-    }
-    final service = Service(
-      name: _nameCtrl.text.trim(),
-      description: _descriptionCtrl.text.trim(),
-      price: double.tryParse(_priceCtrl.text.trim()),
-      details: [
-        for (final row in _details)
-          if (row.labelCtrl.text.trim().isNotEmpty || row.valueCtrl.text.trim().isNotEmpty)
-            ServiceDetail(label: row.labelCtrl.text.trim(), value: row.valueCtrl.text.trim()),
-      ],
-    );
+    if (!_formKey.currentState!.validate()) return;
+    final service = widget.initial ?? Service(name: '');
+    service
+      ..name = _nameCtrl.text.trim()
+      ..category = _category
+      ..description = _descriptionCtrl.text.trim()
+      ..price = double.tryParse(_priceCtrl.text.trim())
+      ..photoCount = _photoCount
+      ..details = List.of(_details);
     widget.onSubmit(service);
   }
 
@@ -95,62 +78,105 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
             constraints: const BoxConstraints(maxWidth: 420),
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _label('Service Name'),
-                  TextField(
-                    controller: _nameCtrl,
-                    decoration: const InputDecoration(hintText: 'Example: Bridal Makeup'),
-                  ),
-                  const SizedBox(height: 20),
-                  _label('Description'),
-                  TextField(
-                    controller: _descriptionCtrl,
-                    minLines: 3,
-                    maxLines: 5,
-                    decoration: const InputDecoration(hintText: 'Describe your service'),
-                  ),
-                  const SizedBox(height: 20),
-                  _label('Price'),
-                  TextField(
-                    controller: _priceCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(hintText: '120 ILS'),
-                  ),
-                  const SizedBox(height: 20),
-                  UploadPhotosBox(
-                    label: 'Service Photos',
-                    count: _photoCount,
-                    onUpload: () => setState(() => _photoCount += 1),
-                  ),
-                  const SizedBox(height: 20),
-                  _label('Additional Details'),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _label('Service Name'),
+                    TextFormField(
+                      controller: _nameCtrl,
+                      decoration: const InputDecoration(hintText: 'Example: Bridal Makeup'),
+                      validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter a service name.' : null,
                     ),
-                    child: Column(
-                      children: [
-                        for (final detail in _details) _detailRow(detail),
+                    const SizedBox(height: 20),
+                    _label('Category'),
+                    DropdownButtonFormField<String>(
+                      initialValue: _category,
+                      items: [
+                        for (final category in serviceCategories) DropdownMenuItem(value: category, child: Text(category)),
                       ],
+                      onChanged: (value) => setState(() => _category = value ?? _category),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: _addDetailRow,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add Another Detail'),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _save,
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
-                    child: const Text('Save Service'),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    _label('Description'),
+                    TextFormField(
+                      controller: _descriptionCtrl,
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: const InputDecoration(hintText: 'Describe your service'),
+                    ),
+                    const SizedBox(height: 20),
+                    _label('Base Price (Optional)'),
+                    TextFormField(
+                      controller: _priceCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(prefixText: 'ILS ', hintText: '120'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return null;
+                        return double.tryParse(value.trim()) == null ? 'Enter a valid number.' : null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    PhotoGridPicker(
+                      label: 'Service Photos',
+                      count: _photoCount,
+                      onAdd: () => setState(() => _photoCount += 1),
+                    ),
+                    const SizedBox(height: 20),
+                    _label('Additional Details'),
+                    if (_details.isEmpty)
+                      Text('No details added yet.', style: AppTextStyles.bodyMd(color: AppColors.outline).copyWith(fontStyle: FontStyle.italic))
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Column(
+                          children: [
+                            for (final detail in _details)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(text: '${detail.label}: ', style: AppTextStyles.labelMd()),
+                                            TextSpan(text: detail.value, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => _removeDetail(detail),
+                                      icon: const Icon(Icons.close, size: 18, color: AppColors.outline),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: _addDetail,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add Detail'),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _save,
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+                      child: const Text('Save Service'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -163,45 +189,66 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
         padding: const EdgeInsets.only(left: 4, bottom: 6),
         child: Text(text, style: AppTextStyles.labelMd()),
       );
+}
 
-  Widget _detailRow(_DetailRow detail) {
+/// Modal bottom sheet for adding one custom label/value [ServiceDetail] row
+/// (e.g. "Max guests" / "300 people") to the parent form's detail list.
+class _AddDetailSheet extends StatefulWidget {
+  const _AddDetailSheet();
+
+  @override
+  State<_AddDetailSheet> createState() => _AddDetailSheetState();
+}
+
+class _AddDetailSheetState extends State<_AddDetailSheet> {
+  final _labelCtrl = TextEditingController();
+  final _valueCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _labelCtrl.dispose();
+    _valueCtrl.dispose();
+    super.dispose();
+  }
+
+  void _add() {
+    if (_labelCtrl.text.trim().isEmpty || _valueCtrl.text.trim().isEmpty) return;
+    Navigator.of(context).pop(ServiceDetail(label: _labelCtrl.text.trim(), value: _valueCtrl.text.trim()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            width: 96,
-            child: TextField(
-              controller: detail.labelCtrl,
-              style: AppTextStyles.labelMd(),
-              decoration: const InputDecoration(
-                hintText: 'Label',
-                isDense: true,
-                filled: true,
-                fillColor: AppColors.surfaceContainerLowest,
+          Text('Add Detail', style: AppTextStyles.headlineMd()),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _labelCtrl,
+                  decoration: const InputDecoration(hintText: 'e.g. Max guests, Duration...'),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text('|', style: AppTextStyles.bodyMd(color: AppColors.outlineVariant)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: detail.valueCtrl,
-              style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-              decoration: const InputDecoration(
-                hintText: 'Value',
-                isDense: true,
-                filled: true,
-                fillColor: AppColors.surfaceContainerLowest,
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _valueCtrl,
+                  decoration: const InputDecoration(hintText: 'e.g. 300 people...'),
+                ),
               ),
-            ),
+            ],
           ),
-          IconButton(
-            onPressed: () => _removeDetailRow(detail),
-            icon: const Icon(Icons.close, size: 18, color: AppColors.outline),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _add,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+            child: const Text('Add'),
           ),
         ],
       ),

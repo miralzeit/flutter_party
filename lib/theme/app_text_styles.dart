@@ -70,4 +70,8 @@ class AppTextStyles {
 
   static TextStyle labelSm({Color color = AppColors.onSurfaceVariant}) =>
       _inter(fontSize: 12, weight: FontWeight.w500, height: 16, color: color);
+
+  /// The large number on a [MetricCard] (Dashboard / Analytics grids).
+  static TextStyle statValue({Color color = AppColors.onSurface}) =>
+      _inter(fontSize: 24, weight: FontWeight.w500, height: 32, color: color);
 }

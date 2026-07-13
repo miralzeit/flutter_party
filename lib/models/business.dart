@@ -9,41 +9,103 @@ class ServiceDetail {
   String value;
 }
 
+const List<String> serviceCategories = ['Standard', 'Premium', 'Add-on', 'Seasonal', 'Other'];
+
 /// A single offering under a [Business] (e.g. "Bridal Makeup", "Chicken &
 /// Rice Meal"). The same screen is reused for every business category, so
 /// this model stays generic: name/description/price plus free-form details.
 class Service {
   Service({
     required this.name,
+    this.category = '',
     this.description = '',
     this.price,
+    this.photoCount = 0,
     List<ServiceDetail>? details,
   }) : details = details ?? [];
 
   String name;
+  String category;
   String description;
   double? price;
+  int photoCount;
   List<ServiceDetail> details;
 }
 
+/// A bundle of a business's existing [Service]s sold together at a single
+/// price (e.g. "Silver Wedding Package" = hall rental + a meal + a dessert
+/// table).
+class Package {
+  Package({
+    required this.name,
+    this.description = '',
+    this.price,
+    List<Service>? includedServices,
+  }) : includedServices = includedServices ?? [];
+
+  String name;
+  String description;
+  double? price;
+  List<Service> includedServices;
+}
+
+int _businessIdCounter = 0;
+String _nextBusinessId() => 'biz_${DateTime.now().microsecondsSinceEpoch}_${_businessIdCounter++}';
+
+/// Whether a business is visible to customers yet. Derived on [Business],
+/// never set directly by a screen — see [Business.status].
+enum BusinessStatus { underReview, active, paused }
+
 /// A vendor's business (e.g. a wedding hall or a salon), with its own
-/// photos, base price and list of [Service]s.
+/// photos, base price and list of [Service]s and [Package]s.
 class Business {
   Business({
+    String? id,
     required this.name,
     required this.category,
     this.description = '',
     this.basePrice,
+    this.location = '',
+    this.address = '',
+    this.whatsapp = '',
+    this.instagram = '',
+    this.facebook = '',
     this.photoCount = 0,
+    this.isPaused = false,
     List<Service>? services,
-  }) : services = services ?? [];
+    List<Package>? packages,
+    List<String>? features,
+  }) : id = id ?? _nextBusinessId(),
+       services = services ?? [],
+       packages = packages ?? [],
+       features = features ?? [];
 
+  final String id;
   String name;
   String category;
   String description;
   double? basePrice;
+  /// The business's city — kept as "location" for backward compatibility
+  /// with existing screens; shown to vendors simply as "City".
+  String location;
+  String address;
+  String whatsapp;
+  String instagram;
+  String facebook;
   int photoCount;
+  bool isPaused;
   List<Service> services;
+  List<Package> packages;
+  List<String> features;
+
+  /// Paused is a vendor choice; otherwise a business only goes live once it
+  /// has at least one service and one photo — until then it reads as
+  /// "Under Review" rather than a hardcoded always-pending badge.
+  BusinessStatus get status {
+    if (isPaused) return BusinessStatus.paused;
+    if (services.isNotEmpty && photoCount > 0) return BusinessStatus.active;
+    return BusinessStatus.underReview;
+  }
 }
 
 const List<String> businessCategories = [

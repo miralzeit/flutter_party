@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_register_screen.dart';
 
 void main() {
-  runApp(const EventProApp());
+  runApp(const ProviderScope(child: EventProApp()));
 }
 
 class EventProApp extends StatelessWidget {
