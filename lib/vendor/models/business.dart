@@ -47,6 +47,26 @@ class Package {
   String description;
   double? price;
   List<Service> includedServices;
+
+  /// What the included services would cost if bought individually.
+  double get originalPrice => includedServices.fold(0.0, (sum, service) => sum + (service.price ?? 0));
+
+  /// How much a customer saves by buying the package instead of each
+  /// service separately. Null when there's no package price yet, or when
+  /// the package isn't actually cheaper than buying separately.
+  double? get savings {
+    if (price == null) return null;
+    final diff = originalPrice - price!;
+    return diff > 0 ? diff : null;
+  }
+}
+
+/// One question/answer pair in a business's FAQ list.
+class Faq {
+  Faq({this.question = '', this.answer = ''});
+
+  String question;
+  String answer;
 }
 
 int _businessIdCounter = 0;
@@ -72,13 +92,18 @@ class Business {
     this.facebook = '',
     this.photoCount = 0,
     this.isPaused = false,
+    this.businessHours = '',
+    this.capacity,
+    this.hasCoverVideo = false,
     List<Service>? services,
     List<Package>? packages,
     List<String>? features,
+    List<Faq>? faqs,
   }) : id = id ?? _nextBusinessId(),
        services = services ?? [],
        packages = packages ?? [],
-       features = features ?? [];
+       features = features ?? [],
+       faqs = faqs ?? [];
 
   final String id;
   String name;
@@ -94,9 +119,15 @@ class Business {
   String facebook;
   int photoCount;
   bool isPaused;
+  /// Free-form opening hours, e.g. "Mon–Sat, 9am–9pm".
+  String businessHours;
+  /// Guest capacity, mainly relevant for venues (halls, catering).
+  int? capacity;
+  bool hasCoverVideo;
   List<Service> services;
   List<Package> packages;
   List<String> features;
+  List<Faq> faqs;
 
   /// Paused is a vendor choice; otherwise a business only goes live once it
   /// has at least one service and one photo — until then it reads as

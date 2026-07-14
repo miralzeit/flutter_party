@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
+const _monthNames = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
-/// One row in a business's Dashboard "Recent Activity" feed.
-class ActivityEvent {
-  ActivityEvent({required this.icon, required this.description, required this.timestamp});
-
-  final IconData icon;
-  final String description;
-  final DateTime timestamp;
-}
+/// Formats a [DateTime] as "March 20, 2026" without pulling in `intl`.
+String formatLongDate(DateTime date) => '${_monthNames[date.month - 1]} ${date.day}, ${date.year}';
 
 /// Formats a past [DateTime] as a short relative label ("2h ago", "3d ago").
 String relativeTime(DateTime time) {
