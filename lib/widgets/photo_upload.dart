@@ -61,6 +61,63 @@ class UploadPhotosBox extends StatelessWidget {
   }
 }
 
+/// Grid of square photo tiles plus a trailing "add" tile. Same simulated
+/// upload as [UploadPhotosBox] — [onAdd] just increments the count — but
+/// laid out as a picker grid for forms that support multiple photos.
+class PhotoGridPicker extends StatelessWidget {
+  const PhotoGridPicker({super.key, required this.label, required this.count, required this.onAdd});
+
+  final String label;
+  final int count;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(label, style: AppTextStyles.labelMd()),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: count + 1,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemBuilder: (context, index) {
+            if (index == count) {
+              return InkWell(
+                onTap: onAdd,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.outlineVariant, width: 2),
+                  ),
+                  child: const Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
+                ),
+              );
+            }
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: const Icon(Icons.photo_outlined, color: AppColors.primary),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
 /// Circular profile-picture placeholder + "Upload Photo" button used on the
 /// vendor profile setup screen.
 class ProfilePhotoPicker extends StatelessWidget {
