@@ -8,7 +8,7 @@ import '../widgets/role_toggle.dart';
 import '../widgets/social_buttons.dart';
 import '../widgets/vendor_id_upload.dart';
 import 'account_under_review_screen.dart';
-import 'event_flow_home_screen.dart';
+import 'user/event_flow_home_screen.dart';
 
 /// Screen 1 — "login_registration" export.
 /// A single card with a brand mark, a Login/Register tab switcher, and an

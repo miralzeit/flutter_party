@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/marketplace_vendor.dart';
-import '../providers/vendor_marketplace_provider.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_theme.dart';
+import '../../models/marketplace_vendor.dart';
+import '../../providers/vendor_marketplace_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/app_theme.dart';
+import 'plan_your_event_screen.dart';
 
 class EventFlowHomeScreen extends StatelessWidget {
   const EventFlowHomeScreen({super.key});
@@ -135,7 +136,11 @@ class _HeroBanner extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PlanYourEventScreen()),
+              );
+            },
             style: TextButton.styleFrom(
               backgroundColor: AppColors.eventBackground,
               foregroundColor: AppColors.eventBlack,

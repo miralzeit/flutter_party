@@ -73,4 +73,8 @@ class AppColors {
   static const Color eventBorder = Color(0xFFE4E8E6);
   static const Color eventShadow = Color(0x1A1F3D3A);
   static const Color eventBlack = Color(0xFF101412);
+  static const Color eventPageBackground = Color(0xFFF7F8F7);
+  static const Color eventSelectedBackground = Color(0xFFE6F4EA);
+  static const Color eventLightBlue = Color(0xFFE8F2FF);
+  static const Color eventMapGreen = Color(0xFFDDECE4);
 }

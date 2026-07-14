@@ -1,17 +1,23 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
+import 'package:flutter_party/providers/event_provider.dart';
 import 'package:flutter_party/providers/vendor_marketplace_provider.dart';
+import 'package:flutter_party/services/event_api_service.dart';
 import 'package:flutter_party/services/vendor_api_service.dart';
 
 void main() {
   testWidgets('EventFlow home screen renders', (WidgetTester tester) async {
+    final fakeEventApiService = _FakeEventApiService();
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
+          eventApiServiceProvider.overrideWithValue(fakeEventApiService),
         ],
         child: const EventProApp(),
       ),
@@ -30,6 +36,31 @@ void main() {
     expect(find.text('Nearby Vendors'), findsOneWidget);
     expect(find.text('The Evergreen Pavilion'), findsOneWidget);
     expect(find.text('Petal & Brush Artistry'), findsOneWidget);
+
+    await tester.tap(find.text('Start Planning Your Event'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plan your event'), findsOneWidget);
+    expect(find.text('Wedding'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).first,
+      'Smith & Co. Wedding',
+    );
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -420));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText).last, 'San Francisco, CA');
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -420));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Get started'), findsOneWidget);
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    expect(fakeEventApiService.createdEvent?.eventType, 'Wedding');
+    expect(fakeEventApiService.createdEvent?.eventName, 'Smith & Co. Wedding');
+    expect(fakeEventApiService.createdEvent?.location, 'San Francisco, CA');
+    expect(fakeEventApiService.createdEvent?.eventDate, isNotNull);
   });
 }
 
@@ -69,5 +100,14 @@ class _FakeVendorApiService extends VendorApiService {
       limit: 10,
       hasNextPage: false,
     );
+  }
+}
+
+class _FakeEventApiService extends EventApiService {
+  CreateEventRequest? createdEvent;
+
+  @override
+  Future<void> createEvent(CreateEventRequest event) async {
+    createdEvent = event;
   }
 }
