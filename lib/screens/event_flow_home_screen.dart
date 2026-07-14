@@ -146,8 +146,8 @@ class _HeroBanner extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   decoration: const BoxDecoration(
                     color: AppColors.eventPrimary,
                     shape: BoxShape.circle,
