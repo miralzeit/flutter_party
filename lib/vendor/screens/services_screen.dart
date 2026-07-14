@@ -401,6 +401,7 @@ class _PackageCard extends StatelessWidget {
     const maxShown = 3;
     final shown = package.includedServices.take(maxShown).toList();
     final remaining = package.includedServices.length - shown.length;
+    final savings = package.savings;
 
     return InkWell(
       onTap: onEdit,
@@ -445,6 +446,21 @@ class _PackageCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (savings != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.tertiaryContainer.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text('Save ${savings.toStringAsFixed(0)} ILS', style: AppTextStyles.labelSm(color: AppColors.tertiary)),
+                  ),
+                ),
+              ),
             if (shown.isEmpty)
               _mutedItalic('No services attached yet.')
             else

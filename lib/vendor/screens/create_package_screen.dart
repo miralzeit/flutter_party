@@ -41,6 +41,15 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
         }
       });
 
+  double get _originalPrice => _selected.fold(0.0, (sum, service) => sum + (service.price ?? 0));
+
+  double? get _savings {
+    final price = double.tryParse(_priceCtrl.text.trim());
+    if (price == null) return null;
+    final diff = _originalPrice - price;
+    return diff > 0 ? diff : null;
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate()) return;
     final package = widget.initial ?? Package(name: '');
@@ -82,6 +91,7 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                       controller: _priceCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(prefixText: 'ILS ', hintText: '4000'),
+                      onChanged: (_) => setState(() {}),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return null;
                         return double.tryParse(value.trim()) == null ? 'Enter a valid number.' : null;
@@ -133,6 +143,46 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                           ],
                         ),
                       ),
+                    if (_selected.isNotEmpty && _originalPrice > 0) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('Original Price', style: AppTextStyles.bodyMd()),
+                                const Spacer(),
+                                Text('${_originalPrice.toStringAsFixed(0)} ILS', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                              ],
+                            ),
+                            if (_savings != null) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.tertiaryContainer.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(AppRadius.dflt),
+                                  border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  '🎉 Customers save ${_savings!.toStringAsFixed(0)} ILS',
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.labelMd(color: AppColors.tertiary),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _save,
