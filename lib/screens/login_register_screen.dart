@@ -8,6 +8,7 @@ import '../widgets/role_toggle.dart';
 import '../widgets/social_buttons.dart';
 import '../widgets/vendor_id_upload.dart';
 import 'account_under_review_screen.dart';
+import 'event_flow_home_screen.dart';
 
 /// Screen 1 — "login_registration" export.
 /// A single card with a brand mark, a Login/Register tab switcher, and an
@@ -67,7 +68,10 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                     duration: const Duration(milliseconds: 300),
                     transitionBuilder: (child, animation) {
                       final offset = Tween<Offset>(
-                        begin: Offset(child.key == const ValueKey('login') ? -0.08 : 0.08, 0),
+                        begin: Offset(
+                          child.key == const ValueKey('login') ? -0.08 : 0.08,
+                          0,
+                        ),
                         end: Offset.zero,
                       ).animate(animation);
                       return FadeTransition(
@@ -82,7 +86,12 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   const SizedBox(height: 16),
                   AppleAuthButton(onPressed: () {}),
                   const SizedBox(height: 32),
-                  _SwitchPrompt(isLogin: isLogin, onTap: () => _setMode(isLogin ? _AuthMode.register : _AuthMode.login)),
+                  _SwitchPrompt(
+                    isLogin: isLogin,
+                    onTap: () => _setMode(
+                      isLogin ? _AuthMode.register : _AuthMode.login,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -98,7 +107,12 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       key: const ValueKey('login'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _field('Email Address', 'name@company.com', _loginEmailCtrl, keyboardType: TextInputType.emailAddress),
+        _field(
+          'Email Address',
+          'name@company.com',
+          _loginEmailCtrl,
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 16),
         _field(
           'Password',
@@ -106,8 +120,13 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
           _loginPassCtrl,
           obscure: _obscureLoginPass,
           suffix: IconButton(
-            icon: Icon(_obscureLoginPass ? Icons.visibility_off : Icons.visibility, color: AppColors.outline, size: 20),
-            onPressed: () => setState(() => _obscureLoginPass = !_obscureLoginPass),
+            icon: Icon(
+              _obscureLoginPass ? Icons.visibility_off : Icons.visibility,
+              color: AppColors.outline,
+              size: 20,
+            ),
+            onPressed: () =>
+                setState(() => _obscureLoginPass = !_obscureLoginPass),
           ),
         ),
         const SizedBox(height: 8),
@@ -115,13 +134,18 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () {},
-            child: Text('Forgot Password?', style: AppTextStyles.labelMd(color: AppColors.primary)),
+            child: Text(
+              'Forgot Password?',
+              style: AppTextStyles.labelMd(color: AppColors.primary),
+            ),
           ),
         ),
         const SizedBox(height: 24),
         ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+          onPressed: _handleLogin,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryContainer,
+          ),
           child: const Text('Log In'),
         ),
       ],
@@ -133,13 +157,26 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       key: const ValueKey('register'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RoleTogglePill(selected: _regRole, onChanged: (r) => setState(() => _regRole = r)),
+        RoleTogglePill(
+          selected: _regRole,
+          onChanged: (r) => setState(() => _regRole = r),
+        ),
         const SizedBox(height: 16),
         _field('Full Name', 'John Doe', _regNameCtrl),
         const SizedBox(height: 16),
-        _field('Email Address', 'name@company.com', _regEmailCtrl, keyboardType: TextInputType.emailAddress),
+        _field(
+          'Email Address',
+          'name@company.com',
+          _regEmailCtrl,
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 16),
-        _field('Phone Number', '+1 (555) 000-0000', _regPhoneCtrl, keyboardType: TextInputType.phone),
+        _field(
+          'Phone Number',
+          '+1 (555) 000-0000',
+          _regPhoneCtrl,
+          keyboardType: TextInputType.phone,
+        ),
         AnimatedSize(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
@@ -148,7 +185,8 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   padding: const EdgeInsets.only(top: 16),
                   child: VendorIdUploadSection(
                     fileName: _uploadedFileName,
-                    onUpload: () => setState(() => _uploadedFileName = 'work_id.jpg'),
+                    onUpload: () =>
+                        setState(() => _uploadedFileName = 'work_id.jpg'),
                   ),
                 )
               : const SizedBox.shrink(),
@@ -156,7 +194,9 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: _handleRegister,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryContainer,
+          ),
           child: const Text('Create Account'),
         ),
       ],
@@ -170,8 +210,16 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (demo)')),
+    _goToEventFlow();
+  }
+
+  void _handleLogin() {
+    _goToEventFlow();
+  }
+
+  void _goToEventFlow() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const EventFlowHomeScreen()),
     );
   }
 
@@ -188,7 +236,10 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text(label, style: AppTextStyles.labelMd(color: AppColors.onSurfaceVariant)),
+          child: Text(
+            label,
+            style: AppTextStyles.labelMd(color: AppColors.onSurfaceVariant),
+          ),
         ),
         TextField(
           controller: controller,
@@ -212,7 +263,13 @@ class _BrandMark extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: const Icon(Icons.forest, color: Colors.white, size: 36),
         ),
@@ -245,8 +302,16 @@ class _TabSwitcher extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _tab('Login', isLogin, () => onChanged(_AuthMode.login))),
-          Expanded(child: _tab('Register', !isLogin, () => onChanged(_AuthMode.register))),
+          Expanded(
+            child: _tab('Login', isLogin, () => onChanged(_AuthMode.login)),
+          ),
+          Expanded(
+            child: _tab(
+              'Register',
+              !isLogin,
+              () => onChanged(_AuthMode.register),
+            ),
+          ),
         ],
       ),
     );
@@ -264,12 +329,22 @@ class _TabSwitcher extends StatelessWidget {
           color: active ? AppColors.primaryContainer : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.dflt),
           boxShadow: active
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
               : null,
         ),
         child: Text(
           label,
-          style: AppTextStyles.labelMd(color: active ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant),
+          style: AppTextStyles.labelMd(
+            color: active
+                ? AppColors.onPrimaryContainer
+                : AppColors.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -314,7 +389,11 @@ class _SwitchPromptState extends State<_SwitchPrompt> {
       text: TextSpan(
         style: AppTextStyles.bodyMd(),
         children: [
-          TextSpan(text: widget.isLogin ? "Don't have an account? " : 'Already have an account? '),
+          TextSpan(
+            text: widget.isLogin
+                ? "Don't have an account? "
+                : 'Already have an account? ',
+          ),
           TextSpan(
             text: widget.isLogin ? 'Register' : 'Log in',
             style: AppTextStyles.labelMd(color: AppColors.primary),

@@ -60,4 +60,17 @@ class AppColors {
   static const Color googleGreen = Color(0xFF34A853);
   static const Color googleYellow = Color(0xFFFBBC05);
   static const Color googleRed = Color(0xFFEA4335);
+
+  // EventFlow home screen
+  static const Color eventPrimary = Color(0xFF1F3D3A);
+  static const Color eventPrimaryLight = Color(0xFF335E58);
+  static const Color eventAccent = Color(0xFF2E7D32);
+  static const Color eventBackground = Color(0xFFFFFFFF);
+  static const Color eventMutedBackground = Color(0xFFF5F5F5);
+  static const Color eventMutedForeground = Color(0xFF6E7573);
+  static const Color eventDarkIcon = Color(0xFF313735);
+  static const Color eventSoftText = Color(0xFFC9D7D2);
+  static const Color eventBorder = Color(0xFFE4E8E6);
+  static const Color eventShadow = Color(0x1A1F3D3A);
+  static const Color eventBlack = Color(0xFF101412);
 }
