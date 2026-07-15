@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/business.dart';
-import '../theme/app_text_styles.dart';
+import 'field_label.dart';
 import 'photo_upload.dart';
 
 /// The business form's fields, extracted out of a Scaffold/AppBar/submit-
@@ -78,14 +78,14 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _label('Business Name'),
+          const FieldLabel('Business Name'),
           TextFormField(
             controller: _nameCtrl,
             decoration: const InputDecoration(hintText: 'Example: Nissan Hall'),
             validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter a business name.' : null,
           ),
           const SizedBox(height: 20),
-          _label('Category'),
+          const FieldLabel('Category'),
           DropdownButtonFormField<String>(
             initialValue: _category,
             items: [
@@ -94,26 +94,26 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
             onChanged: (value) => setState(() => _category = value ?? _category),
           ),
           const SizedBox(height: 20),
-          _label('City'),
+          const FieldLabel('City'),
           TextFormField(
             controller: _cityCtrl,
             decoration: const InputDecoration(hintText: 'Bethlehem'),
           ),
           const SizedBox(height: 20),
-          _label('Address (Optional)'),
+          const FieldLabel('Address (Optional)'),
           TextFormField(
             controller: _addressCtrl,
             decoration: const InputDecoration(hintText: 'Street, building, floor...'),
           ),
           const SizedBox(height: 20),
-          _label('WhatsApp Number'),
+          const FieldLabel('WhatsApp Number'),
           TextFormField(
             controller: _whatsappCtrl,
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(hintText: '059xxxxxxx'),
           ),
           const SizedBox(height: 20),
-          _label('Description'),
+          const FieldLabel('Description'),
           TextFormField(
             controller: _descriptionCtrl,
             minLines: 3,
@@ -122,7 +122,7 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
             decoration: const InputDecoration(hintText: 'Describe your business'),
           ),
           const SizedBox(height: 4),
-          _label('Base Price (Optional)'),
+          const FieldLabel('Base Price (Optional)'),
           TextFormField(
             controller: _priceCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -133,13 +133,13 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
             },
           ),
           const SizedBox(height: 20),
-          _label('Instagram Handle (Optional)'),
+          const FieldLabel('Instagram Handle (Optional)'),
           TextFormField(
             controller: _instagramCtrl,
             decoration: const InputDecoration(hintText: '@yourbusiness'),
           ),
           const SizedBox(height: 20),
-          _label('Facebook Page (Optional)'),
+          const FieldLabel('Facebook Page (Optional)'),
           TextFormField(
             controller: _facebookCtrl,
             decoration: const InputDecoration(hintText: 'facebook.com/yourbusiness'),
@@ -154,9 +154,4 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }

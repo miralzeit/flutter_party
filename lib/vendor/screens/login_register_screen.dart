@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
-import '../widgets/app_top_bar.dart';
 import '../widgets/role_toggle.dart';
 import '../widgets/social_buttons.dart';
 import '../widgets/vendor_id_upload.dart';
@@ -50,44 +49,134 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     final isLogin = _mode == _AuthMode.login;
 
     return Scaffold(
-      appBar: const AppTopBar(),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-              child: Column(
-                children: [
-                  _BrandMark(),
-                  const SizedBox(height: 32),
-                  _TabSwitcher(isLogin: isLogin, onChanged: _setMode),
-                  const SizedBox(height: 32),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (child, animation) {
-                      final offset = Tween<Offset>(
-                        begin: Offset(child.key == const ValueKey('login') ? -0.08 : 0.08, 0),
-                        end: Offset.zero,
-                      ).animate(animation);
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(position: offset, child: child),
-                      );
-                    },
-                    child: isLogin ? _buildLoginForm() : _buildRegisterForm(),
-                  ),
-                  const OrDivider(),
-                  GoogleAuthButton(onPressed: () {}),
-                  const SizedBox(height: 16),
-                  AppleAuthButton(onPressed: () {}),
-                  const SizedBox(height: 32),
-                  _SwitchPrompt(isLogin: isLogin, onTap: () => _setMode(isLogin ? _AuthMode.register : _AuthMode.login)),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFF7FBFA), Color(0xFFE8F1F0)],
           ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+              final panel = _authPanel(isLogin);
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Padding(
+                    padding: EdgeInsets.all(isWide ? 32 : 20),
+                    child: isWide
+                        ? Row(
+                            children: [
+                              const Expanded(flex: 11, child: _AuthHero()),
+                              const SizedBox(width: 64),
+                              SizedBox(width: 448, child: panel),
+                            ],
+                          )
+                        : SizedBox(width: 480, child: panel),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _authPanel(bool isLogin) {
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          border: Border.all(
+            color: AppColors.outlineVariant.withValues(alpha: .55),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: .12),
+              blurRadius: 40,
+              offset: const Offset(0, 20),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.event_available_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'EventPro',
+                  style: AppTextStyles.headlineMd(color: AppColors.primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 36),
+            Text(
+              isLogin ? 'Welcome back' : 'Create your account',
+              style: AppTextStyles.headlineLg(),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isLogin
+                  ? 'Sign in to manage exceptional event experiences.'
+                  : 'Join a more thoughtful way to plan and discover events.',
+              style: AppTextStyles.bodyMd(),
+            ),
+            const SizedBox(height: 28),
+            _TabSwitcher(isLogin: isLogin, onChanged: _setMode),
+            const SizedBox(height: 28),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                final offset =
+                    Tween<Offset>(
+                      begin: Offset(
+                        child.key == const ValueKey('login') ? -0.06 : 0.06,
+                        0,
+                      ),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    );
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(position: offset, child: child),
+                );
+              },
+              child: isLogin ? _buildLoginForm() : _buildRegisterForm(),
+            ),
+            const OrDivider(),
+            GoogleAuthButton(onPressed: () {}),
+            const SizedBox(height: 12),
+            AppleAuthButton(onPressed: () {}),
+            const SizedBox(height: 28),
+            _SwitchPrompt(
+              isLogin: isLogin,
+              onTap: () =>
+                  _setMode(isLogin ? _AuthMode.register : _AuthMode.login),
+            ),
+          ],
         ),
       ),
     );
@@ -98,16 +187,28 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       key: const ValueKey('login'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _field('Email Address', 'name@company.com', _loginEmailCtrl, keyboardType: TextInputType.emailAddress),
+        _field(
+          'Email Address',
+          'name@company.com',
+          _loginEmailCtrl,
+          prefix: Icons.alternate_email_rounded,
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 16),
         _field(
           'Password',
           '••••••••',
           _loginPassCtrl,
+          prefix: Icons.lock_outline_rounded,
           obscure: _obscureLoginPass,
           suffix: IconButton(
-            icon: Icon(_obscureLoginPass ? Icons.visibility_off : Icons.visibility, color: AppColors.outline, size: 20),
-            onPressed: () => setState(() => _obscureLoginPass = !_obscureLoginPass),
+            icon: Icon(
+              _obscureLoginPass ? Icons.visibility_off : Icons.visibility,
+              color: AppColors.outline,
+              size: 20,
+            ),
+            onPressed: () =>
+                setState(() => _obscureLoginPass = !_obscureLoginPass),
           ),
         ),
         const SizedBox(height: 8),
@@ -115,13 +216,18 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () {},
-            child: Text('Forgot Password?', style: AppTextStyles.labelMd(color: AppColors.primary)),
+            child: Text(
+              'Forgot Password?',
+              style: AppTextStyles.labelMd(color: AppColors.primary),
+            ),
           ),
         ),
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: () {},
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryContainer,
+          ),
           child: const Text('Log In'),
         ),
       ],
@@ -133,13 +239,33 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       key: const ValueKey('register'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RoleTogglePill(selected: _regRole, onChanged: (r) => setState(() => _regRole = r)),
+        RoleTogglePill(
+          selected: _regRole,
+          onChanged: (r) => setState(() => _regRole = r),
+        ),
         const SizedBox(height: 16),
-        _field('Full Name', 'John Doe', _regNameCtrl),
+        _field(
+          'Full Name',
+          'John Doe',
+          _regNameCtrl,
+          prefix: Icons.person_outline_rounded,
+        ),
         const SizedBox(height: 16),
-        _field('Email Address', 'name@company.com', _regEmailCtrl, keyboardType: TextInputType.emailAddress),
+        _field(
+          'Email Address',
+          'name@company.com',
+          _regEmailCtrl,
+          prefix: Icons.alternate_email_rounded,
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 16),
-        _field('Phone Number', '+1 (555) 000-0000', _regPhoneCtrl, keyboardType: TextInputType.phone),
+        _field(
+          'Phone Number',
+          '+1 (555) 000-0000',
+          _regPhoneCtrl,
+          prefix: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
+        ),
         AnimatedSize(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
@@ -148,7 +274,8 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   padding: const EdgeInsets.only(top: 16),
                   child: VendorIdUploadSection(
                     fileName: _uploadedFileName,
-                    onUpload: () => setState(() => _uploadedFileName = 'work_id.jpg'),
+                    onUpload: () =>
+                        setState(() => _uploadedFileName = 'work_id.jpg'),
                   ),
                 )
               : const SizedBox.shrink(),
@@ -156,7 +283,9 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: _handleRegister,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryContainer,
+          ),
           child: const Text('Create Account'),
         ),
       ],
@@ -170,9 +299,9 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (demo)')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Account created (demo)')));
   }
 
   Widget _field(
@@ -181,6 +310,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     TextEditingController controller, {
     bool obscure = false,
     Widget? suffix,
+    IconData? prefix,
     TextInputType? keyboardType,
   }) {
     return Column(
@@ -188,45 +318,96 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text(label, style: AppTextStyles.labelMd(color: AppColors.onSurfaceVariant)),
+          child: Text(
+            label,
+            style: AppTextStyles.labelMd(color: AppColors.onSurfaceVariant),
+          ),
         ),
         TextField(
           controller: controller,
           obscureText: obscure,
           keyboardType: keyboardType,
-          decoration: InputDecoration(hintText: hint, suffixIcon: suffix),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: prefix == null
+                ? null
+                : Icon(prefix, color: AppColors.primary),
+            suffixIcon: suffix,
+          ),
         ),
       ],
     );
   }
 }
 
-class _BrandMark extends StatelessWidget {
+class _AuthHero extends StatelessWidget {
+  const _AuthHero();
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
-          child: const Icon(Icons.forest, color: Colors.white, size: 36),
-        ),
-        const SizedBox(height: 16),
-        Text('Evergreen Events', style: AppTextStyles.headlineLgMobile()),
-        const SizedBox(height: 8),
-        Text(
-          'Professional planning for sustainable experiences.',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMd(),
-        ),
-      ],
+          const SizedBox(height: 32),
+          Text(
+            'Events, made\nexceptional.',
+            style: AppTextStyles.displayLg(color: AppColors.primary),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'A refined workspace for event professionals who care about every detail.',
+            style: AppTextStyles.bodyLg(),
+          ),
+          const SizedBox(height: 36),
+          const _HeroPoint(
+            icon: Icons.insights_rounded,
+            label: 'See your business at a glance',
+          ),
+          const SizedBox(height: 18),
+          const _HeroPoint(
+            icon: Icons.verified_user_outlined,
+            label: 'Build trust with a complete profile',
+          ),
+          const SizedBox(height: 18),
+          const _HeroPoint(
+            icon: Icons.bolt_rounded,
+            label: 'Move from idea to action, faster',
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _HeroPoint extends StatelessWidget {
+  const _HeroPoint({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, color: AppColors.tertiary),
+      const SizedBox(width: 12),
+      Text(label, style: AppTextStyles.labelMd()),
+    ],
+  );
 }
 
 class _TabSwitcher extends StatelessWidget {
@@ -245,8 +426,16 @@ class _TabSwitcher extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _tab('Login', isLogin, () => onChanged(_AuthMode.login))),
-          Expanded(child: _tab('Register', !isLogin, () => onChanged(_AuthMode.register))),
+          Expanded(
+            child: _tab('Login', isLogin, () => onChanged(_AuthMode.login)),
+          ),
+          Expanded(
+            child: _tab(
+              'Register',
+              !isLogin,
+              () => onChanged(_AuthMode.register),
+            ),
+          ),
         ],
       ),
     );
@@ -264,12 +453,22 @@ class _TabSwitcher extends StatelessWidget {
           color: active ? AppColors.primaryContainer : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.dflt),
           boxShadow: active
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
               : null,
         ),
         child: Text(
           label,
-          style: AppTextStyles.labelMd(color: active ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant),
+          style: AppTextStyles.labelMd(
+            color: active
+                ? AppColors.onPrimaryContainer
+                : AppColors.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -314,7 +513,11 @@ class _SwitchPromptState extends State<_SwitchPrompt> {
       text: TextSpan(
         style: AppTextStyles.bodyMd(),
         children: [
-          TextSpan(text: widget.isLogin ? "Don't have an account? " : 'Already have an account? '),
+          TextSpan(
+            text: widget.isLogin
+                ? "Don't have an account? "
+                : 'Already have an account? ',
+          ),
           TextSpan(
             text: widget.isLogin ? 'Register' : 'Log in',
             style: AppTextStyles.labelMd(color: AppColors.primary),

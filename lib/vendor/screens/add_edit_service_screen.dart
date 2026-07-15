@@ -3,6 +3,7 @@ import '../models/business.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
+import '../widgets/field_label.dart';
 import '../widgets/photo_upload.dart';
 
 /// Screen 8 — "Add / Edit Service". The single most-reused screen in the
@@ -83,14 +84,14 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _label('Service Name'),
+                    const FieldLabel('Service Name'),
                     TextFormField(
                       controller: _nameCtrl,
                       decoration: const InputDecoration(hintText: 'Example: Bridal Makeup'),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter a service name.' : null,
                     ),
                     const SizedBox(height: 20),
-                    _label('Category'),
+                    const FieldLabel('Category'),
                     DropdownButtonFormField<String>(
                       initialValue: _category,
                       items: [
@@ -99,7 +100,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                       onChanged: (value) => setState(() => _category = value ?? _category),
                     ),
                     const SizedBox(height: 20),
-                    _label('Description'),
+                    const FieldLabel('Description'),
                     TextFormField(
                       controller: _descriptionCtrl,
                       minLines: 3,
@@ -107,7 +108,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                       decoration: const InputDecoration(hintText: 'Describe your service'),
                     ),
                     const SizedBox(height: 20),
-                    _label('Base Price (Optional)'),
+                    const FieldLabel('Base Price (Optional)'),
                     TextFormField(
                       controller: _priceCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -124,7 +125,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                       onAdd: () => setState(() => _photoCount += 1),
                     ),
                     const SizedBox(height: 20),
-                    _label('Additional Details'),
+                    const FieldLabel('Additional Details'),
                     if (_details.isEmpty)
                       Text('No details added yet.', style: AppTextStyles.bodyMd(color: AppColors.outline).copyWith(fontStyle: FontStyle.italic))
                     else
@@ -184,11 +185,6 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }
 
 /// Modal bottom sheet for adding one custom label/value [ServiceDetail] row

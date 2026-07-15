@@ -172,7 +172,7 @@ class _ServicesPackagesScreenState extends ConsumerState<ServicesPackagesScreen>
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: business == null ? _noBusiness() : _content(business),
           ),
         ),

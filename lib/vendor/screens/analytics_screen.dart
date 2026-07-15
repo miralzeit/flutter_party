@@ -9,13 +9,15 @@ import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_format.dart';
 import '../widgets/metric_card.dart';
+import '../widgets/views_trend_card.dart';
 import 'report_review_screen.dart';
 
 /// Tab 3 — "Analytics". A professional vendor dashboard: profile views
-/// (total + month-over-month chart), WhatsApp click and favorite counters,
-/// a popular services/packages ranking, and the full reviews list with a
-/// report-review action. All numbers are mocked (see mock_business_stats.dart)
-/// since there's no backend for bookings/views/reviews yet.
+/// (total + recent trend + month-over-month chart), call/WhatsApp click and
+/// favorite counters, a popular services/packages ranking, and the full
+/// reviews list with a report-review action. All numbers are mocked (see
+/// mock_business_stats.dart) since there's no backend for bookings/views/
+/// reviews yet.
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key});
 
@@ -45,7 +47,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: business == null
                 ? Center(
                     child: Padding(
@@ -74,7 +76,13 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         Text('${stats.totalProfileViews}', style: AppTextStyles.headlineLgMobile()),
         Text('Total profile views', style: AppTextStyles.bodyMd()),
         const SizedBox(height: 16),
+        ViewsTrendCard(stats: stats),
+        const SizedBox(height: 16),
         _MonthlyViewsChart(monthly: stats.monthlyViews),
+        const SizedBox(height: 28),
+        _sectionTitle('Calls'),
+        const SizedBox(height: 12),
+        MetricCard(label: 'Total calls', value: '${stats.calls}', icon: Icons.call_outlined),
         const SizedBox(height: 28),
         _sectionTitle('WhatsApp Clicks'),
         const SizedBox(height: 12),

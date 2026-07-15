@@ -70,14 +70,34 @@ class AdminTheme {
         titleTextStyle: AdminTextStyles.headlineMd(),
         iconTheme: const IconThemeData(color: AdminColors.onSurfaceVariant),
       ),
+      cardTheme: CardThemeData(
+        color: AdminColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AdminRadius.md),
+          side: const BorderSide(color: AdminColors.outlineVariant),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AdminColors.primary,
           foregroundColor: AdminColors.onPrimary,
           elevation: 0,
+          minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.sm)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.md)),
           textStyle: AdminTextStyles.labelMd(color: AdminColors.onPrimary),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 48),
+          foregroundColor: AdminColors.primary,
+          side: const BorderSide(color: AdminColors.outlineVariant),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.md)),
+          textStyle: AdminTextStyles.labelMd(color: AdminColors.primary),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -86,19 +106,39 @@ class AdminTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         hintStyle: AdminTextStyles.bodyMd(color: AdminColors.outline),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AdminRadius.sm),
+          borderRadius: BorderRadius.circular(AdminRadius.md),
           borderSide: const BorderSide(color: AdminColors.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AdminRadius.sm),
+          borderRadius: BorderRadius.circular(AdminRadius.md),
           borderSide: const BorderSide(color: AdminColors.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AdminRadius.sm),
+          borderRadius: BorderRadius.circular(AdminRadius.md),
           borderSide: const BorderSide(color: AdminColors.primary, width: 2),
         ),
       ),
       dividerTheme: const DividerThemeData(color: AdminColors.outlineVariant, thickness: 1, space: 1),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.sm)),
+        iconColor: AdminColors.primary,
+        titleTextStyle: AdminTextStyles.labelMd(),
+        subtitleTextStyle: AdminTextStyles.bodyMd(),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AdminColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: AdminTextStyles.headlineMd(),
+        contentTextStyle: AdminTextStyles.bodyMd(color: AdminColors.onSurfaceVariant),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.md)),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AdminColors.onSurface,
+        contentTextStyle: AdminTextStyles.bodyMd(color: AdminColors.background),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminRadius.sm)),
+      ),
     );
   }
 }

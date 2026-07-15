@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/admin_providers.dart';
 import '../screens/analytics/analytics_home_screen.dart';
 import '../screens/categories/category_management_screen.dart';
@@ -125,13 +126,13 @@ class _AdminSidebar extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Row(
                 children: [
-                  Icon(Icons.event_available, color: Colors.white, size: 22),
-                  SizedBox(width: 10),
-                  Text('EventPro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
+                  const Icon(Icons.event_available, color: Colors.white, size: 22),
+                  const SizedBox(width: 10),
+                  Text('EventPro', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
                 ],
               ),
             ),
@@ -158,20 +159,20 @@ class _AdminSidebar extends ConsumerWidget {
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.white24,
-                child: Text(admin.name.isEmpty ? '?' : admin.name[0], style: const TextStyle(color: Colors.white)),
+                child: Text(admin.name.isEmpty ? '?' : admin.name[0], style: AdminTextStyles.labelMd(color: Colors.white)),
               ),
               title: Text(admin.name, style: AdminTextStyles.labelMd(color: Colors.white), overflow: TextOverflow.ellipsis),
               subtitle: Text(admin.roleLabel, style: AdminTextStyles.labelSm(color: Colors.white70)),
             ),
             InkWell(
               onTap: () => _signOut(context),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    Icon(Icons.logout, color: Colors.white70, size: 18),
-                    SizedBox(width: 12),
-                    Text('Sign Out', style: TextStyle(color: Colors.white70)),
+                    const Icon(Icons.logout, color: Colors.white70, size: 18),
+                    const SizedBox(width: 12),
+                    Text('Sign Out', style: AdminTextStyles.bodyMd(color: Colors.white70)),
                   ],
                 ),
               ),
@@ -209,7 +210,7 @@ class _NavTile extends StatelessWidget {
               children: [
                 Icon(selected ? activeIcon : icon, color: Colors.white, size: 20),
                 const SizedBox(width: 14),
-                Text(label, style: TextStyle(color: Colors.white, fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),
+                Text(label, style: AdminTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),
               ],
             ),
           ),

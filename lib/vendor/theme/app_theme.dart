@@ -72,28 +72,39 @@ class AppTheme {
         labelSmall: AppTextStyles.labelSm(),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
+        titleTextStyle: AppTextStyles.headlineMd(),
         iconTheme: const IconThemeData(color: AppColors.onSurfaceVariant),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          side: const BorderSide(color: AppColors.outlineVariant),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceContainerLowest,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         hintStyle: AppTextStyles.bodyMd(color: AppColors.outline),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: const BorderSide(color: AppColors.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: const BorderSide(color: AppColors.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
@@ -101,13 +112,69 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 0,
+          minimumSize: const Size.fromHeight(52),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          textStyle: AppTextStyles.headlineMd(color: AppColors.onPrimary),
+          textStyle: AppTextStyles.labelMd(color: AppColors.onPrimary),
         ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(52),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.outlineVariant),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+          textStyle: AppTextStyles.labelMd(color: AppColors.primary),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          textStyle: AppTextStyles.labelMd(color: AppColors.primary),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+        iconColor: AppColors.primary,
+        titleTextStyle: AppTextStyles.labelMd(),
+        subtitleTextStyle: AppTextStyles.bodyMd(),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.surfaceContainerLow,
+        selectedColor: AppColors.primaryContainer,
+        side: BorderSide.none,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
+        labelStyle: AppTextStyles.labelSm(),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        indicatorColor: AppColors.primaryContainer,
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => AppTextStyles.labelSm(
+            color: states.contains(WidgetState.selected)
+                ? AppColors.onPrimaryContainer
+                : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.surfaceContainerLowest,
+        indicatorColor: AppColors.primaryContainer,
+        selectedIconTheme: const IconThemeData(color: AppColors.onPrimaryContainer),
+        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceVariant),
+        selectedLabelTextStyle: AppTextStyles.labelSm(color: AppColors.primary),
+        unselectedLabelTextStyle: AppTextStyles.labelSm(),
+        useIndicator: true,
       ),
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(
@@ -124,6 +191,30 @@ class AppTheme {
         color: AppColors.outlineVariant,
         thickness: 1,
         space: 1,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: AppTextStyles.headlineMd(),
+        contentTextStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.onSurface,
+        contentTextStyle: AppTextStyles.bodyMd(color: AppColors.background),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.dflt),
+        ),
       ),
     );
   }

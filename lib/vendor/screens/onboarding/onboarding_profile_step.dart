@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/onboarding_provider.dart';
-import '../../theme/app_text_styles.dart';
+import '../../widgets/field_label.dart';
 import '../../widgets/photo_upload.dart';
 import '../../widgets/wizard_bottom_bar.dart';
 
@@ -69,7 +69,7 @@ class _OnboardingProfileStepState extends ConsumerState<OnboardingProfileStep> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _label('Full Name'),
+                  const FieldLabel('Full Name'),
                   TextFormField(
                     controller: _nameCtrl,
                     onChanged: (_) => setState(() {}),
@@ -77,7 +77,7 @@ class _OnboardingProfileStepState extends ConsumerState<OnboardingProfileStep> {
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Full name is required.' : null,
                   ),
                   const SizedBox(height: 20),
-                  _label('Phone Number'),
+                  const FieldLabel('Phone Number'),
                   TextFormField(
                     controller: _phoneCtrl,
                     onChanged: (_) => setState(() {}),
@@ -86,14 +86,14 @@ class _OnboardingProfileStepState extends ConsumerState<OnboardingProfileStep> {
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Phone number is required.' : null,
                   ),
                   const SizedBox(height: 20),
-                  _label('WhatsApp Number (Optional)'),
+                  const FieldLabel('WhatsApp Number (Optional)'),
                   TextField(
                     controller: _whatsappCtrl,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(hintText: '059xxxxxxx'),
                   ),
                   const SizedBox(height: 20),
-                  _label('Email (Optional)'),
+                  const FieldLabel('Email (Optional)'),
                   TextField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
@@ -108,9 +108,4 @@ class _OnboardingProfileStepState extends ConsumerState<OnboardingProfileStep> {
       ],
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }

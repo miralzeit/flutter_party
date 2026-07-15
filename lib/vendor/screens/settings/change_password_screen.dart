@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
+import '../../widgets/field_label.dart';
 
 /// "Change Password" — no auth backend exists yet, so like every other form
 /// in this app (photo upload, account creation) this just simulates success.
@@ -48,7 +48,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _label('Current Password'),
+                    const FieldLabel('Current Password'),
                     TextFormField(
                       controller: _currentCtrl,
                       obscureText: _obscure,
@@ -61,14 +61,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _label('New Password'),
+                    const FieldLabel('New Password'),
                     TextFormField(
                       controller: _newCtrl,
                       obscureText: _obscure,
                       validator: (v) => (v == null || v.length < 8) ? 'Use at least 8 characters.' : null,
                     ),
                     const SizedBox(height: 20),
-                    _label('Confirm New Password'),
+                    const FieldLabel('Confirm New Password'),
                     TextFormField(
                       controller: _confirmCtrl,
                       obscureText: _obscure,
@@ -89,9 +89,4 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }

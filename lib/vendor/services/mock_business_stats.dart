@@ -27,13 +27,25 @@ class PopularItem {
 }
 
 /// A single row in the Dashboard's "Competitor Comparison" — another
-/// business in the same category, with its rating and review count.
+/// business in the same category, with its rating, review count, starting
+/// price and what it offers (services + amenities), so a vendor can see not
+/// just where they rank but what a competitor actually has that they don't.
 class CompetitorStat {
-  CompetitorStat(this.name, this.avgRating, this.reviewsCount);
+  CompetitorStat({
+    required this.name,
+    required this.avgRating,
+    required this.reviewsCount,
+    required this.startingPrice,
+    required this.topServices,
+    required this.features,
+  });
 
   final String name;
   final double avgRating;
   final int reviewsCount;
+  final double startingPrice;
+  final List<String> topServices;
+  final List<String> features;
 }
 
 /// Today / this-week / this-month / all-time totals for a single engagement
@@ -200,21 +212,55 @@ const _competitorNamePool = [
   'City Favorites',
 ];
 
+/// What a competitor's headline services tend to look like, by category —
+/// falls back to ['Other'] for any category not listed here.
+const _competitorServicePool = {
+  'Wedding Hall': ['Full Venue Rental', 'In-House Catering', 'Bridal Suite Access', 'Event Coordination'],
+  'Salon': ['Bridal Makeup', 'Hair Styling', 'Mani-Pedi Package', 'Skin Treatment'],
+  'Catering': ['Buffet Package', 'Plated Dinner Service', 'Dessert Table', 'Live Cooking Station'],
+  'Photography': ['Full-Day Coverage', 'Drone Photography', 'Same-Day Editing', 'Photo Booth'],
+  'Decoration': ['Full Venue Decor', 'Floral Arrangements', 'Lighting Design', 'Stage Backdrop'],
+  'DJ & Music': ['Live Band', 'DJ & Sound System', 'MC Hosting', 'Lighting & Effects'],
+  'Other': ['Custom Package', 'Consultation', 'Add-on Services'],
+};
+
+/// Amenities/features competitors might advertise — deliberately overlaps
+/// with the keywords [computeQualityScore] checks for (parking, outdoor,
+/// generator, accessible) so a vendor missing one of those checklist items
+/// is likely to see a competitor calling it out.
+const _competitorFeaturePool = [
+  'Free Parking',
+  'Outdoor Garden Area',
+  'Backup Generator',
+  'Wheelchair Accessible',
+  'Free WiFi',
+  'Valet Service',
+  'Bridal Suite',
+  'In-House Catering',
+];
+
 /// Nearby businesses in the same category, for the Dashboard's "Competitor
 /// Comparison" card. There's no backend/marketplace data yet, so this
-/// generates believable ratings deterministically from the business's id,
-/// stable across rebuilds within a session — same convention as
-/// [generateBusinessStats].
+/// generates believable ratings, pricing, services and amenities
+/// deterministically from the business's id, stable across rebuilds within a
+/// session — same convention as [generateBusinessStats].
 List<CompetitorStat> generateCompetitors(Business business) {
   final random = Random(business.id.hashCode ^ 0x5bd1e995);
   final names = [..._competitorNamePool]..shuffle(random);
   const count = 3;
+
+  final servicePool = _competitorServicePool[business.category] ?? _competitorServicePool['Other']!;
+  final basePrice = business.basePrice ?? (800 + random.nextInt(3200)).toDouble();
+
   return [
     for (final name in names.take(count))
       CompetitorStat(
-        name,
-        double.parse((3.5 + random.nextDouble() * 1.5).toStringAsFixed(1)),
-        15 + random.nextInt(150),
+        name: name,
+        avgRating: double.parse((3.5 + random.nextDouble() * 1.5).toStringAsFixed(1)),
+        reviewsCount: 15 + random.nextInt(150),
+        startingPrice: (basePrice * (0.75 + random.nextDouble() * 0.6)).roundToDouble(),
+        topServices: ([...servicePool]..shuffle(random)).take(2 + random.nextInt(2)).toList(),
+        features: ([..._competitorFeaturePool]..shuffle(random)).take(2 + random.nextInt(3)).toList(),
       ),
   ];
 }

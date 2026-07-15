@@ -26,80 +26,84 @@ class OverviewScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final admin = ref.watch(currentAdminProvider);
     final stats = ref.watch(dashboardStatsProvider);
-    final isWide = MediaQuery.of(context).size.width >= 720;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Overview')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AdminSpacing.margin),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Admin Dashboard', style: AdminTextStyles.headlineLg()),
-            const SizedBox(height: 4),
-            Text('Welcome back, ${admin.name} · ${admin.roleLabel}', style: AdminTextStyles.bodyLg(color: AdminColors.onSurfaceVariant)),
-            const SizedBox(height: 24),
-            GridView.count(
-              crossAxisCount: isWide ? 4 : 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: AdminSpacing.gutter,
-              mainAxisSpacing: AdminSpacing.gutter,
-              childAspectRatio: isWide ? 1.3 : 0.85,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 720;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(AdminSpacing.margin),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AdminStatCard(
-                  label: 'Total Users',
-                  value: '${stats.totalUsers}',
-                  subtitle: 'Since last Monday',
-                  icon: Icons.people_outline,
+                Text('Admin Dashboard', style: AdminTextStyles.headlineLg()),
+                const SizedBox(height: 4),
+                Text('Welcome back, ${admin.name} · ${admin.roleLabel}', style: AdminTextStyles.bodyLg(color: AdminColors.onSurfaceVariant)),
+                const SizedBox(height: 24),
+                GridView.count(
+                  crossAxisCount: isWide ? 4 : 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: AdminSpacing.gutter,
+                  mainAxisSpacing: AdminSpacing.gutter,
+                  childAspectRatio: isWide ? 1.3 : 0.85,
+                  children: [
+                    AdminStatCard(
+                      label: 'Total Users',
+                      value: '${stats.totalUsers}',
+                      subtitle: 'Since last Monday',
+                      icon: Icons.people_outline,
+                    ),
+                    AdminStatCard(
+                      label: 'Active Vendors',
+                      value: '${stats.activeVendors}',
+                      subtitle: 'Verified listings',
+                      icon: Icons.storefront_outlined,
+                    ),
+                    AdminStatCard(
+                      label: 'Pending Approvals',
+                      value: '${stats.pendingApprovals}',
+                      subtitle: 'Awaiting manual review',
+                      icon: Icons.hourglass_top,
+                      flagLabel: 'ACTION REQ',
+                      flagColor: AdminColors.warning,
+                      onTap: () => _goToPendingVendors(ref),
+                    ),
+                    AdminStatCard(
+                      label: 'Reported Reviews',
+                      value: '${stats.reportedReviews}',
+                      subtitle: 'Policy violations',
+                      icon: Icons.flag_outlined,
+                      flagLabel: 'URGENT',
+                      flagColor: AdminColors.error,
+                      onTap: () => _goToReportedReviews(ref),
+                    ),
+                  ],
                 ),
-                AdminStatCard(
-                  label: 'Active Vendors',
-                  value: '${stats.activeVendors}',
-                  subtitle: 'Verified listings',
-                  icon: Icons.storefront_outlined,
-                ),
-                AdminStatCard(
-                  label: 'Pending Approvals',
-                  value: '${stats.pendingApprovals}',
-                  subtitle: 'Awaiting manual review',
-                  icon: Icons.hourglass_top,
-                  flagLabel: 'ACTION REQ',
-                  flagColor: AdminColors.warning,
-                  onTap: () => _goToPendingVendors(ref),
-                ),
-                AdminStatCard(
-                  label: 'Reported Reviews',
-                  value: '${stats.reportedReviews}',
-                  subtitle: 'Policy violations',
-                  icon: Icons.flag_outlined,
-                  flagLabel: 'URGENT',
-                  flagColor: AdminColors.error,
-                  onTap: () => _goToReportedReviews(ref),
+                const SizedBox(height: 32),
+                Text('Quick Links', style: AdminTextStyles.headlineMd()),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _QuickLink(
+                      icon: Icons.hourglass_top,
+                      label: 'Review Pending Vendors',
+                      onTap: () => _goToPendingVendors(ref),
+                    ),
+                    _QuickLink(
+                      icon: Icons.flag_outlined,
+                      label: 'Moderate Reported Reviews',
+                      onTap: () => _goToReportedReviews(ref),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 32),
-            Text('Quick Links', style: AdminTextStyles.headlineMd()),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _QuickLink(
-                  icon: Icons.hourglass_top,
-                  label: 'Review Pending Vendors',
-                  onTap: () => _goToPendingVendors(ref),
-                ),
-                _QuickLink(
-                  icon: Icons.flag_outlined,
-                  label: 'Moderate Reported Reviews',
-                  onTap: () => _goToReportedReviews(ref),
-                ),
-              ],
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
