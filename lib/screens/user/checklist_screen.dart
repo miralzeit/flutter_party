@@ -8,6 +8,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'event_flow_home_screen.dart';
+import 'profile_screen.dart';
 
 const bool _skipChecklistBackend = bool.fromEnvironment(
   'SKIP_CHECKLIST_BACKEND',
@@ -603,7 +604,15 @@ class _ChecklistBottomNav extends StatelessWidget {
               label: 'Checklist',
               active: true,
             ),
-            const _BottomNavItem(icon: Icons.person_rounded, label: 'Profile'),
+            _BottomNavItem(
+              icon: Icons.person_rounded,
+              label: 'Profile',
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
           ],
         ),
       ),

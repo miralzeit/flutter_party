@@ -9,6 +9,7 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
 import 'checklist_screen.dart';
 import 'event_flow_home_screen.dart';
+import 'profile_screen.dart';
 
 const bool _skipChatBackend = bool.fromEnvironment(
   'SKIP_CHAT_BACKEND',
@@ -637,7 +638,15 @@ class _ChatBottomNav extends ConsumerWidget {
                 );
               },
             ),
-            const _BottomNavItem(icon: Icons.person_rounded, label: 'Profile'),
+            _BottomNavItem(
+              icon: Icons.person_rounded,
+              label: 'Profile',
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
           ],
         ),
       ),

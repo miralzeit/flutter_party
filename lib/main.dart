@@ -6,6 +6,7 @@ import 'screens/user/checklist_screen.dart';
 import 'screens/user/create_wishlist_screen.dart';
 import 'screens/user/event_flow_home_screen.dart';
 import 'screens/user/plan_your_event_screen.dart';
+import 'screens/user/profile_screen.dart';
 import 'screens/user/wedding_registry_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -26,6 +27,7 @@ class EventProApp extends StatelessWidget {
       routes: {
         '/home': (_) => const EventFlowHomeScreen(),
         '/plan-event': (_) => const PlanYourEventScreen(),
+        '/profile': (_) => const ProfileScreen(),
         '/create-wishlist': (_) => const CreateWishlistScreen(),
         '/chat': (_) => const ChatScreen(),
         '/checklist': (_) => const ChecklistScreen(),

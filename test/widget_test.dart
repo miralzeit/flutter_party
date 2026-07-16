@@ -164,6 +164,53 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Evergreen User'), findsOneWidget);
+    expect(find.text('user@evergreen.events'), findsOneWidget);
+    expect(find.text('1 Active Events'), findsOneWidget);
+    expect(find.text('Tasks Pending'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('ACCOUNT SETTINGS'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('ACCOUNT SETTINGS'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('PREFERENCES'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('PREFERENCES'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('MY EVENTS'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('MY EVENTS'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('SUPPORT'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('SUPPORT'), findsOneWidget);
+
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Create Wishlist'));
     await tester.pumpAndSettle();
 

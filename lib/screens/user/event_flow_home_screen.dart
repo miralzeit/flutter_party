@@ -13,6 +13,7 @@ import 'chat_screen.dart';
 import 'checklist_screen.dart';
 import 'create_wishlist_screen.dart';
 import 'plan_your_event_screen.dart';
+import 'profile_screen.dart';
 import 'wedding_registry_screen.dart';
 
 class EventFlowHomeScreen extends StatelessWidget {
@@ -1258,6 +1259,14 @@ class _EventFlowBottomNav extends ConsumerWidget {
                             eventName:
                                 activeEvent?.eventName ?? 'Evergreen Events',
                           ),
+                        ),
+                      );
+                    }
+                  : item.label == 'Profile'
+                  ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
                         ),
                       );
                     }
