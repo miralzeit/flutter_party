@@ -266,6 +266,24 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.text('Help Center'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Help Center'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Need help?'), findsOneWidget);
+    expect(find.text('Contact Support'), findsOneWidget);
+    expect(find.text('Live Chat'), findsOneWidget);
+
+    await tester.tap(find.text('Live Chat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Evergreen Assistant'), findsOneWidget);
+
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
 

@@ -13,6 +13,7 @@ import 'chat_screen.dart';
 import 'checklist_screen.dart';
 import 'edit_profile_screen.dart';
 import 'event_flow_home_screen.dart';
+import 'help_center_screen.dart';
 import 'security_settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -684,17 +685,25 @@ class _SupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _SettingsCard(
+    return _SettingsCard(
       rows: [
         _SettingsRowData(
           icon: Icons.help_outline_rounded,
           title: 'Help Center',
+          onTap: () {
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const HelpCenterScreen()));
+          },
         ),
-        _SettingsRowData(
+        const _SettingsRowData(
           icon: Icons.description_rounded,
           title: 'Terms of Service',
         ),
-        _SettingsRowData(icon: Icons.shield_rounded, title: 'Privacy Policy'),
+        const _SettingsRowData(
+          icon: Icons.shield_rounded,
+          title: 'Privacy Policy',
+        ),
       ],
     );
   }
