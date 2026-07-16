@@ -7,6 +7,7 @@ import '../../providers/vendor_marketplace_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'create_wishlist_screen.dart';
 import 'plan_your_event_screen.dart';
 
 class EventFlowHomeScreen extends StatelessWidget {
@@ -288,7 +289,13 @@ class _ActiveEventHeroCard extends StatelessWidget {
                 label: 'Create Wishlist',
                 icon: Icons.card_giftcard_rounded,
                 translucent: true,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreateWishlistScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

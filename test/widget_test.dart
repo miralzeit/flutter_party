@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,6 +6,8 @@ import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
 import 'package:flutter_party/providers/event_provider.dart';
 import 'package:flutter_party/providers/vendor_marketplace_provider.dart';
+import 'package:flutter_party/services/wishlist_api_service.dart';
+import 'package:flutter_party/providers/wishlist_provider.dart';
 import 'package:flutter_party/services/event_api_service.dart';
 import 'package:flutter_party/services/vendor_api_service.dart';
 
@@ -18,6 +20,9 @@ void main() {
         overrides: [
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
           eventApiServiceProvider.overrideWithValue(fakeEventApiService),
+          wishlistApiServiceProvider.overrideWithValue(
+            _FakeWishlistApiService(),
+          ),
         ],
         child: const EventProApp(),
       ),
@@ -65,6 +70,30 @@ void main() {
     expect(find.text('View Checklist'), findsOneWidget);
     expect(find.text('Create Wishlist'), findsOneWidget);
     expect(find.text('Add Event'), findsOneWidget);
+
+    await tester.tap(find.text('Create Wishlist'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create Wishlist'), findsOneWidget);
+    expect(find.text('Name your wishlist'), findsOneWidget);
+    expect(find.text('Add item by URL'), findsOneWidget);
+    expect(find.text('Privacy Settings'), findsOneWidget);
+    expect(find.text('Save & Create Wishlist'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'Dream Wedding Decor',
+    );
+    await tester.enterText(
+      find.byType(EditableText).at(1),
+      'https://etsy.com/listing/demo-lamp',
+    );
+    await tester.tap(find.byIcon(Icons.add_rounded).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Items'), findsOneWidget);
+    expect(find.text('Demo Registry Lamp'), findsOneWidget);
+    expect(find.textContaining('etsy.com'), findsOneWidget);
   });
 }
 
@@ -113,5 +142,27 @@ class _FakeEventApiService extends EventApiService {
   @override
   Future<void> createEvent(CreateEventRequest event) async {
     createdEvent = event;
+  }
+}
+
+class _FakeWishlistApiService extends WishlistApiService {
+  String? addedUrl;
+  SaveWishlistRequest? savedWishlist;
+
+  @override
+  Future<WishlistItem> addItemByUrl(String url) async {
+    addedUrl = url;
+    return WishlistItem(
+      url: url,
+      title: 'Demo Registry Lamp',
+      imageUrl: '',
+      price: '\$49',
+      sourceDomain: 'etsy.com',
+    );
+  }
+
+  @override
+  Future<void> saveWishlist(SaveWishlistRequest wishlist) async {
+    savedWishlist = wishlist;
   }
 }
