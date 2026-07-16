@@ -22,6 +22,7 @@ class WishlistItem {
     required this.imageUrl,
     required this.price,
     required this.sourceDomain,
+    this.category = 'WISHLIST ITEM',
     this.selected = true,
   });
 
@@ -30,6 +31,7 @@ class WishlistItem {
   final String imageUrl;
   final String price;
   final String sourceDomain;
+  final String category;
   final bool selected;
 
   factory WishlistItem.fromJson(Map<String, dynamic> json, String fallbackUrl) {
@@ -41,9 +43,16 @@ class WishlistItem {
       price: _stringValue(json, ['price', 'displayPrice', 'amount']),
       sourceDomain: _stringValue(json, [
         'sourceDomain',
+        'store',
+        'storeName',
         'domain',
         'source',
       ], fallback: _domainFromUrl(url)),
+      category: _stringValue(json, [
+        'category',
+        'categoryLabel',
+        'department',
+      ], fallback: 'WISHLIST ITEM').toUpperCase(),
       selected: json['selected'] is bool ? json['selected'] as bool : true,
     );
   }
@@ -56,6 +65,7 @@ class WishlistItem {
       imageUrl: '',
       price: 'Price pending',
       sourceDomain: domain,
+      category: 'WISHLIST ITEM',
     );
   }
 
@@ -66,6 +76,7 @@ class WishlistItem {
       'imageUrl': imageUrl,
       'price': price,
       'sourceDomain': sourceDomain,
+      'category': category,
       'selected': selected,
     };
   }

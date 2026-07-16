@@ -80,10 +80,7 @@ void main() {
     expect(find.text('Privacy Settings'), findsOneWidget);
     expect(find.text('Save & Create Wishlist'), findsOneWidget);
 
-    await tester.enterText(
-      find.byType(EditableText).at(0),
-      'Dream Wedding Decor',
-    );
+    await tester.enterText(find.byType(EditableText).at(0), 'Wedding Registry');
     await tester.enterText(
       find.byType(EditableText).at(1),
       'https://etsy.com/listing/demo-lamp',
@@ -94,6 +91,28 @@ void main() {
     expect(find.text('Add Items'), findsOneWidget);
     expect(find.text('Demo Registry Lamp'), findsOneWidget);
     expect(find.textContaining('etsy.com'), findsOneWidget);
+
+    await tester.tap(find.text('Save & Create Wishlist'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wedding Registry'), findsOneWidget);
+    expect(find.text('Wishlist Saved Successfully'), findsOneWidget);
+    expect(find.text('Your 1 item is now ready for sharing.'), findsOneWidget);
+    expect(find.text('Demo Registry Lamp'), findsOneWidget);
+    expect(find.text('View Store'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('EventFlow'), findsOneWidget);
+    expect(find.text('View Wishlist'), findsOneWidget);
+    expect(find.text('Create Wishlist'), findsNothing);
+
+    await tester.tap(find.text('View Wishlist'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wedding Registry'), findsOneWidget);
+    expect(find.text('Demo Registry Lamp'), findsOneWidget);
   });
 }
 
@@ -158,6 +177,7 @@ class _FakeWishlistApiService extends WishlistApiService {
       imageUrl: '',
       price: '\$49',
       sourceDomain: 'etsy.com',
+      category: 'HOME DECOR',
     );
   }
 

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/wishlist_provider.dart';
 import '../../services/wishlist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
-import 'wedding_registry_screen.dart';
 
 const bool _skipWishlistBackend = bool.fromEnvironment(
   'SKIP_WISHLIST_BACKEND',
@@ -18,28 +18,45 @@ const bool _skipCreateEventBackend = bool.fromEnvironment(
   defaultValue: false,
 );
 
-class CreateWishlistScreen extends ConsumerStatefulWidget {
-  const CreateWishlistScreen({super.key});
+class WeddingRegistryScreen extends ConsumerStatefulWidget {
+  const WeddingRegistryScreen({
+    super.key,
+    this.wishlistName = 'Wedding Registry',
+    this.initialItems = const [],
+    this.initialIsPrivate = false,
+    this.showDemoItems = true,
+  });
+
+  final String wishlistName;
+  final List<WishlistItem> initialItems;
+  final bool initialIsPrivate;
+  final bool showDemoItems;
 
   @override
-  ConsumerState<CreateWishlistScreen> createState() =>
-      _CreateWishlistScreenState();
+  ConsumerState<WeddingRegistryScreen> createState() =>
+      _WeddingRegistryScreenState();
 }
 
-class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
-  final _wishlistNameController = TextEditingController();
+class _WeddingRegistryScreenState extends ConsumerState<WeddingRegistryScreen> {
   final _urlController = TextEditingController();
-  final List<WishlistItem> _items = [];
-  var _isPrivate = false;
+  late final List<WishlistItem> _items;
+  late bool _isPrivate;
   var _isAddingItem = false;
-  var _isSaving = false;
 
   bool get _useLocalWishlistData =>
       _skipWishlistBackend || _skipCreateEventBackend;
 
   @override
+  void initState() {
+    super.initState();
+    _items = widget.showDemoItems && widget.initialItems.isEmpty
+        ? List<WishlistItem>.of(_demoRegistryItems)
+        : List<WishlistItem>.of(widget.initialItems);
+    _isPrivate = widget.initialIsPrivate;
+  }
+
+  @override
   void dispose() {
-    _wishlistNameController.dispose();
     _urlController.dispose();
     super.dispose();
   }
@@ -59,67 +76,29 @@ class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
           : await ref.read(wishlistApiServiceProvider).addItemByUrl(url);
 
       if (!mounted) return;
-
       setState(() {
         _items.insert(0, item);
         _urlController.clear();
       });
+      _syncSavedWishlist();
     } catch (error) {
       if (!mounted) return;
       _showMessage(error.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isAddingItem = false);
-      }
+      if (mounted) setState(() => _isAddingItem = false);
     }
   }
 
-  Future<void> _saveWishlist() async {
-    final name = _wishlistNameController.text.trim();
-    if (name.isEmpty) {
-      _showMessage('Name your wishlist before saving.');
+  Future<void> _openStore(WishlistItem item) async {
+    final uri = Uri.tryParse(item.url);
+    if (uri == null) {
+      _showMessage('Store link is not available.');
       return;
     }
 
-    setState(() => _isSaving = true);
-
-    try {
-      if (!_useLocalWishlistData) {
-        await ref
-            .read(wishlistApiServiceProvider)
-            .saveWishlist(
-              SaveWishlistRequest(
-                name: name,
-                isPrivate: _isPrivate,
-                items: _items,
-              ),
-            );
-      }
-
-      ref.read(savedWishlistProvider.notifier).state = SavedWishlist(
-        name: name,
-        items: List<WishlistItem>.of(_items),
-        isPrivate: _isPrivate,
-      );
-
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => WeddingRegistryScreen(
-            wishlistName: name,
-            initialItems: List<WishlistItem>.of(_items),
-            initialIsPrivate: _isPrivate,
-            showDemoItems: false,
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(error.toString());
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      _showMessage('Could not open store link.');
     }
   }
 
@@ -128,6 +107,15 @@ class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
       const ClipboardData(text: 'https://eventflow.app/wishlist'),
     );
     _showMessage('Wishlist link copied.');
+  }
+
+  void _syncSavedWishlist() {
+    final existing = ref.read(savedWishlistProvider);
+    if (existing == null) return;
+    ref.read(savedWishlistProvider.notifier).state = existing.copyWith(
+      items: List<WishlistItem>.of(_items),
+      isPrivate: _isPrivate,
+    );
   }
 
   void _showMessage(String message) {
@@ -148,44 +136,43 @@ class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const _WishlistHeader(),
+            _RegistryHeader(title: widget.wishlistName),
             Expanded(
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 430),
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
                     children: [
-                      _WishlistNameCard(controller: _wishlistNameController),
-                      const SizedBox(height: 16),
+                      _SuccessBanner(itemCount: _items.length),
+                      const SizedBox(height: 18),
+                      for (final item in _items) ...[
+                        _RegistryItemCard(
+                          item: item,
+                          onViewStore: () => _openStore(item),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       _AddUrlCard(
                         controller: _urlController,
                         isLoading: _isAddingItem,
                         onAdd: _isAddingItem ? null : _addItemByUrl,
                       ),
-                      if (_items.isNotEmpty) ...[
-                        const SizedBox(height: 22),
-                        _AddedItemsSection(items: _items),
-                      ],
                       const SizedBox(height: 16),
-                      _PrivacyCard(
+                      _SharingCard(
                         isPrivate: _isPrivate,
                         onPrivateChanged: (value) {
                           setState(() => _isPrivate = value);
+                          _syncSavedWishlist();
                         },
                         onCopyLink: _copyLink,
                         onWhatsApp: () =>
                             _showMessage('WhatsApp sharing coming soon.'),
                       ),
-                      const SizedBox(height: 96),
                     ],
                   ),
                 ),
               ),
-            ),
-            _BottomSaveBar(
-              isSaving: _isSaving,
-              onPressed: _isSaving ? null : _saveWishlist,
             ),
           ],
         ),
@@ -194,8 +181,10 @@ class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
   }
 }
 
-class _WishlistHeader extends StatelessWidget {
-  const _WishlistHeader();
+class _RegistryHeader extends StatelessWidget {
+  const _RegistryHeader({required this.title});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +204,9 @@ class _WishlistHeader extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    'Create Wishlist',
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.headlineMd(
                       color: AppColors.eventBlack,
                     ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -237,28 +228,242 @@ class _WishlistHeader extends StatelessWidget {
   }
 }
 
-class _WishlistNameCard extends StatelessWidget {
-  const _WishlistNameCard({required this.controller});
+class _SuccessBanner extends StatelessWidget {
+  const _SuccessBanner({required this.itemCount});
 
-  final TextEditingController controller;
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
-    return _WishlistCard(
+    final itemWord = itemCount == 1 ? 'item is' : 'items are';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.eventPrimary, AppColors.eventPrimaryLight],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.eventShadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: AppColors.onPrimary,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_rounded,
+              color: AppColors.eventPrimary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Wishlist Saved Successfully',
+                  style: AppTextStyles.labelMd(
+                    color: AppColors.onPrimary,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Your $itemCount $itemWord now ready for sharing.',
+                  style: AppTextStyles.labelSm(
+                    color: AppColors.eventSoftText,
+                  ).copyWith(fontWeight: FontWeight.w600, letterSpacing: 0),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RegistryItemCard extends StatelessWidget {
+  const _RegistryItemCard({required this.item, required this.onViewStore});
+
+  final WishlistItem item;
+  final VoidCallback onViewStore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.eventBackground,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.eventBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.eventShadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardTitle('Name your wishlist'),
-          const SizedBox(height: 12),
-          _WishlistInput(
-            controller: controller,
-            hint: 'e.g., Dream Wedding Decor',
-            textInputAction: TextInputAction.next,
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.lg),
+                ),
+                child: SizedBox(
+                  height: 176,
+                  width: double.infinity,
+                  child: item.imageUrl.isEmpty
+                      ? _RegistryImageFallback(category: item.category)
+                      : Image.network(
+                          item.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _RegistryImageFallback(
+                              category: item.category,
+                            );
+                          },
+                        ),
+                ),
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.eventBackground,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: AppColors.eventShadow,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    item.price.isEmpty ? 'Price pending' : item.price,
+                    style: AppTextStyles.labelMd(
+                      color: AppColors.eventBlack,
+                    ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          const _HelperText(
-            'Give your collection a memorable name for easy sharing.',
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.category.toUpperCase(),
+                  style: AppTextStyles.labelSm(
+                    color: AppColors.eventMutedForeground,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.1),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  item.title,
+                  style: AppTextStyles.headlineMd(
+                    color: AppColors.eventBlack,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.sourceDomain,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyMd(
+                          color: AppColors.eventMutedForeground,
+                        ).copyWith(letterSpacing: 0),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: onViewStore,
+                      icon: const Icon(Icons.open_in_new_rounded, size: 17),
+                      label: const Text('View Store'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.eventPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        textStyle:
+                            AppTextStyles.labelMd(
+                              color: AppColors.eventPrimary,
+                            ).copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RegistryImageFallback extends StatelessWidget {
+  const _RegistryImageFallback({required this.category});
+
+  final String category;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (category.toUpperCase()) {
+      'KITCHEN ESSENTIALS' => Icons.coffee_maker_rounded,
+      'HOME DECOR' => Icons.local_florist_rounded,
+      'BEDROOM' => Icons.bed_rounded,
+      _ => Icons.card_giftcard_rounded,
+    };
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFEAF1EE), Color(0xFFF8FAF9)],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -18,
+            bottom: -24,
+            child: Icon(
+              icon,
+              size: 128,
+              color: AppColors.eventPrimaryLight.withValues(alpha: 0.12),
+            ),
+          ),
+          Center(child: Icon(icon, size: 54, color: AppColors.eventPrimary)),
         ],
       ),
     );
@@ -278,7 +483,7 @@ class _AddUrlCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _WishlistCard(
+    return _RegistryCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -287,7 +492,7 @@ class _AddUrlCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _WishlistInput(
+                child: _RegistryInput(
                   controller: controller,
                   hint: 'Paste Amazon, Etsy, or any',
                   keyboardType: TextInputType.url,
@@ -331,150 +536,8 @@ class _AddUrlCard extends StatelessWidget {
   }
 }
 
-class _AddedItemsSection extends StatelessWidget {
-  const _AddedItemsSection({required this.items});
-
-  final List<WishlistItem> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Add Items',
-          style: AppTextStyles.headlineMd(
-            color: AppColors.eventBlack,
-          ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.78,
-          ),
-          itemBuilder: (context, index) =>
-              _WishlistItemCard(item: items[index]),
-        ),
-      ],
-    );
-  }
-}
-
-class _WishlistItemCard extends StatelessWidget {
-  const _WishlistItemCard({required this.item});
-
-  final WishlistItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.eventBackground,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.eventBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.eventShadow,
-            blurRadius: 14,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.dflt),
-                    child: item.imageUrl.isEmpty
-                        ? const _ItemImageFallback()
-                        : Image.network(
-                            item.imageUrl,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const _ItemImageFallback();
-                            },
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 9),
-                Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.labelMd(
-                    color: AppColors.eventBlack,
-                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  item.price.isEmpty
-                      ? item.sourceDomain
-                      : '${item.price} • ${item.sourceDomain}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.labelSm(
-                    color: AppColors.eventMutedForeground,
-                  ).copyWith(letterSpacing: 0),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Container(
-              width: 26,
-              height: 26,
-              decoration: const BoxDecoration(
-                color: AppColors.eventPrimary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                color: AppColors.onPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ItemImageFallback extends StatelessWidget {
-  const _ItemImageFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: AppColors.eventMutedBackground,
-      child: const Center(
-        child: Icon(
-          Icons.card_giftcard_rounded,
-          color: AppColors.eventMutedForeground,
-          size: 36,
-        ),
-      ),
-    );
-  }
-}
-
-class _PrivacyCard extends StatelessWidget {
-  const _PrivacyCard({
+class _SharingCard extends StatelessWidget {
+  const _SharingCard({
     required this.isPrivate,
     required this.onPrivateChanged,
     required this.onCopyLink,
@@ -488,7 +551,7 @@ class _PrivacyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _WishlistCard(
+    return _RegistryCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -597,52 +660,8 @@ class _ShareButton extends StatelessWidget {
   }
 }
 
-class _BottomSaveBar extends StatelessWidget {
-  const _BottomSaveBar({required this.isSaving, required this.onPressed});
-
-  final bool isSaving;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-      decoration: const BoxDecoration(color: AppColors.eventPageBackground),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton.icon(
-          onPressed: onPressed,
-          icon: isSaving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.onPrimary,
-                    strokeWidth: 2.4,
-                  ),
-                )
-              : const Icon(Icons.save_rounded, size: 20),
-          label: Text(isSaving ? 'Saving...' : 'Save & Create Wishlist'),
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            backgroundColor: AppColors.eventPrimary,
-            foregroundColor: AppColors.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            textStyle: AppTextStyles.labelMd(
-              color: AppColors.onPrimary,
-            ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WishlistCard extends StatelessWidget {
-  const _WishlistCard({required this.child});
+class _RegistryCard extends StatelessWidget {
+  const _RegistryCard({required this.child});
 
   final Widget child;
 
@@ -668,8 +687,8 @@ class _WishlistCard extends StatelessWidget {
   }
 }
 
-class _WishlistInput extends StatelessWidget {
-  const _WishlistInput({
+class _RegistryInput extends StatelessWidget {
+  const _RegistryInput({
     required this.controller,
     required this.hint,
     required this.textInputAction,
@@ -752,3 +771,33 @@ class _HelperText extends StatelessWidget {
     );
   }
 }
+
+const _demoRegistryItems = [
+  WishlistItem(
+    url: 'https://www.amazon.com/',
+    title: 'Smart Precision Coffee Maker',
+    imageUrl:
+        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80',
+    price: r'$249.00',
+    sourceDomain: 'Amazon.com',
+    category: 'KITCHEN ESSENTIALS',
+  ),
+  WishlistItem(
+    url: 'https://www.williams-sonoma.com/',
+    title: 'Artisan Crystal Vase Set',
+    imageUrl:
+        'https://images.unsplash.com/photo-1612196808214-b8e1d6145a8c?auto=format&fit=crop&w=900&q=80',
+    price: r'$120.00',
+    sourceDomain: 'Williams Sonoma',
+    category: 'HOME DECOR',
+  ),
+  WishlistItem(
+    url: 'https://www.brooklinen.com/',
+    title: 'Stone-Washed Linen King Set',
+    imageUrl:
+        'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=900&q=80',
+    price: r'$315.00',
+    sourceDomain: 'Brooklinen',
+    category: 'BEDROOM',
+  ),
+];

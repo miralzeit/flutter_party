@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/marketplace_vendor.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/vendor_marketplace_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
 import 'create_wishlist_screen.dart';
 import 'plan_your_event_screen.dart';
+import 'wedding_registry_screen.dart';
 
 class EventFlowHomeScreen extends StatelessWidget {
   const EventFlowHomeScreen({super.key});
@@ -207,14 +209,15 @@ class _EmptyHeroCard extends StatelessWidget {
   }
 }
 
-class _ActiveEventHeroCard extends StatelessWidget {
+class _ActiveEventHeroCard extends ConsumerWidget {
   const _ActiveEventHeroCard({required this.event});
 
   final ActiveEvent event;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final daysLeft = _daysUntil(event.eventDate);
+    final savedWishlist = ref.watch(savedWishlistProvider);
 
     return Container(
       width: double.infinity,
@@ -286,13 +289,29 @@ class _ActiveEventHeroCard extends StatelessWidget {
               _HeroActionButton(label: 'View Checklist', onPressed: () {}),
               const SizedBox(height: 12),
               _HeroActionButton(
-                label: 'Create Wishlist',
+                label: savedWishlist == null
+                    ? 'Create Wishlist'
+                    : 'View Wishlist',
                 icon: Icons.card_giftcard_rounded,
                 translucent: true,
                 onPressed: () {
+                  if (savedWishlist == null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const CreateWishlistScreen(),
+                      ),
+                    );
+                    return;
+                  }
+
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const CreateWishlistScreen(),
+                      builder: (_) => WeddingRegistryScreen(
+                        wishlistName: savedWishlist.name,
+                        initialItems: savedWishlist.items,
+                        initialIsPrivate: savedWishlist.isPrivate,
+                        showDemoItems: false,
+                      ),
                     ),
                   );
                 },
