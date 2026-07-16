@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
+import 'package:flutter_party/services/security_api_service.dart';
+import 'package:flutter_party/providers/security_provider.dart';
 import 'package:flutter_party/services/user_profile_api_service.dart';
 import 'package:flutter_party/providers/user_profile_provider.dart';
 import 'package:flutter_party/services/chat_api_service.dart';
@@ -27,6 +29,9 @@ void main() {
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
           eventApiServiceProvider.overrideWithValue(fakeEventApiService),
           chatApiServiceProvider.overrideWithValue(_FakeChatApiService()),
+          securityApiServiceProvider.overrideWithValue(
+            _FakeSecurityApiService(),
+          ),
           userProfileApiServiceProvider.overrideWithValue(
             _FakeUserProfileApiService(),
           ),
@@ -218,40 +223,48 @@ void main() {
     expect(find.text('maya@evergreen.events'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('ACCOUNT SETTINGS'),
+      find.text('Security & Password'),
       500,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Security & Password'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('ACCOUNT SETTINGS'), findsOneWidget);
+    expect(find.text('Security Settings'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -120));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Update Password'));
+    await tester.pumpAndSettle();
+    expect(find.text('Password updated.'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('PREFERENCES'),
+      find.text('Two-Factor Auth'),
       500,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
+    expect(find.text('Two-Factor Auth'), findsOneWidget);
 
-    expect(find.text('PREFERENCES'), findsOneWidget);
+    await tester.tap(find.text('SMS Verification'));
+    await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.text('MY EVENTS'),
+      find.text('Sign out all'),
       500,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
-
-    expect(find.text('MY EVENTS'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('SUPPORT'),
-      500,
-      scrollable: find.byType(Scrollable).last,
-    );
+    await tester.ensureVisible(find.widgetWithText(TextButton, 'Sign out all'));
     await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Sign out all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign out all'), findsOneWidget);
 
-    expect(find.text('SUPPORT'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
@@ -277,7 +290,12 @@ void main() {
     expect(find.text('Demo Registry Lamp'), findsOneWidget);
     expect(find.textContaining('etsy.com'), findsOneWidget);
 
-    await tester.tap(find.text('Save & Create Wishlist'));
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    final saveWishlistButton = tester.widget<ElevatedButton>(
+      find.widgetWithText(ElevatedButton, 'Save & Create Wishlist'),
+    );
+    saveWishlistButton.onPressed?.call();
     await tester.pumpAndSettle();
 
     expect(find.text('Wedding Registry'), findsOneWidget);
@@ -371,6 +389,34 @@ class _FakeChatApiService extends ChatApiService {
   Future<ChatReply> sendMessage(String message) async {
     lastMessage = message;
     return ChatReply(message: 'AI reply for: $message');
+  }
+}
+
+class _FakeSecurityApiService extends SecurityApiService {
+  UpdatePasswordRequest? passwordRequest;
+  bool? authenticatorEnabled;
+  bool? smsEnabled;
+  String? revokedSessionId;
+  var revokedAllSessions = false;
+
+  @override
+  Future<void> updatePassword(UpdatePasswordRequest request) async {
+    passwordRequest = request;
+  }
+
+  @override
+  Future<void> updateTwoFactor({
+    required bool authenticatorEnabled,
+    required bool smsEnabled,
+  }) async {
+    this.authenticatorEnabled = authenticatorEnabled;
+    this.smsEnabled = smsEnabled;
+  }
+
+  @override
+  Future<void> revokeSessions({String? sessionId}) async {
+    revokedSessionId = sessionId;
+    revokedAllSessions = sessionId == null;
   }
 }
 

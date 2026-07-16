@@ -8,6 +8,7 @@ import 'screens/user/edit_profile_screen.dart';
 import 'screens/user/event_flow_home_screen.dart';
 import 'screens/user/plan_your_event_screen.dart';
 import 'screens/user/profile_screen.dart';
+import 'screens/user/security_settings_screen.dart';
 import 'screens/user/wedding_registry_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -30,6 +31,7 @@ class EventProApp extends StatelessWidget {
         '/plan-event': (_) => const PlanYourEventScreen(),
         '/profile': (_) => const ProfileScreen(),
         '/edit-profile': (_) => const EditProfileScreen(),
+        '/security-settings': (_) => const SecuritySettingsScreen(),
         '/create-wishlist': (_) => const CreateWishlistScreen(),
         '/chat': (_) => const ChatScreen(),
         '/checklist': (_) => const ChecklistScreen(),

@@ -13,6 +13,7 @@ import 'chat_screen.dart';
 import 'checklist_screen.dart';
 import 'edit_profile_screen.dart';
 import 'event_flow_home_screen.dart';
+import 'security_settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -71,10 +72,18 @@ class ProfileScreen extends ConsumerWidget {
                             title: 'Notifications',
                             subtitle: 'Manage push and email alerts',
                           ),
-                          const _SettingsRowData(
+                          _SettingsRowData(
                             icon: Icons.lock_rounded,
                             title: 'Security & Password',
                             subtitle: '2FA and login security',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const SecuritySettingsScreen(),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
