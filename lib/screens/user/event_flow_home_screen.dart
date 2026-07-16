@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/marketplace_vendor.dart';
+import '../../providers/event_provider.dart';
 import '../../providers/vendor_marketplace_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -96,8 +97,34 @@ class _HeaderIconButton extends StatelessWidget {
   }
 }
 
-class _HeroBanner extends StatelessWidget {
+class _HeroBanner extends ConsumerWidget {
   const _HeroBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeEvent = ref.watch(activeEventProvider);
+    if (activeEvent == null) {
+      return const _EmptyHeroCard();
+    }
+
+    return Column(
+      children: [
+        _ActiveEventHeroCard(event: activeEvent),
+        const SizedBox(height: 14),
+        _AddEventButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PlanYourEventScreen()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyHeroCard extends StatelessWidget {
+  const _EmptyHeroCard();
 
   @override
   Widget build(BuildContext context) {
@@ -177,6 +204,215 @@ class _HeroBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ActiveEventHeroCard extends StatelessWidget {
+  const _ActiveEventHeroCard({required this.event});
+
+  final ActiveEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final daysLeft = _daysUntil(event.eventDate);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.eventPrimary, AppColors.eventPrimaryLight],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.eventShadow,
+            blurRadius: 22,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            top: -22,
+            child: Icon(
+              Icons.event_available_rounded,
+              size: 150,
+              color: AppColors.onPrimary.withValues(alpha: 0.08),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.onPrimary.withValues(alpha: 0.84),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Text(
+                  _taskBadgeText(event),
+                  style: AppTextStyles.labelSm(
+                    color: AppColors.eventPrimary,
+                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                _countdownText(daysLeft),
+                style: AppTextStyles.headlineLg(color: AppColors.onPrimary)
+                    .copyWith(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
+                      height: 1.05,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${event.eventType} • ${_formatEventDate(event.eventDate)}',
+                style: AppTextStyles.bodyMd(
+                  color: AppColors.eventSoftText,
+                ).copyWith(fontWeight: FontWeight.w500, letterSpacing: 0),
+              ),
+              const SizedBox(height: 24),
+              _HeroActionButton(label: 'View Checklist', onPressed: () {}),
+              const SizedBox(height: 12),
+              _HeroActionButton(
+                label: 'Create Wishlist',
+                icon: Icons.card_giftcard_rounded,
+                translucent: true,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroActionButton extends StatelessWidget {
+  const _HeroActionButton({
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.translucent = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final IconData? icon;
+  final bool translucent;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = translucent
+        ? AppColors.onPrimary
+        : AppColors.eventPrimary;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          backgroundColor: translucent
+              ? AppColors.onPrimary.withValues(alpha: 0.18)
+              : AppColors.onPrimary,
+          foregroundColor: foreground,
+          shape: const StadiumBorder(),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 19, color: foreground),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: AppTextStyles.labelMd(
+                color: foreground,
+              ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddEventButton extends StatelessWidget {
+  const _AddEventButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.add_rounded, size: 22),
+        label: const Text('Add Event'),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.eventBackground,
+          foregroundColor: AppColors.eventBlack,
+          side: const BorderSide(color: AppColors.eventBorder, width: 1.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          textStyle: AppTextStyles.labelMd(
+            color: AppColors.eventBlack,
+          ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+        ),
+      ),
+    );
+  }
+}
+
+int _daysUntil(DateTime date) {
+  final eventDate = DateUtils.dateOnly(date);
+  final today = DateUtils.dateOnly(DateTime.now());
+  final days = eventDate.difference(today).inDays;
+  return days < 0 ? 0 : days;
+}
+
+String _countdownText(int days) {
+  if (days == 1) return '1 day left';
+  return '$days days left';
+}
+
+String _taskBadgeText(ActiveEvent event) {
+  if (event.totalTasks <= 0) return '${event.completedTasks} TASKS DONE';
+  return '${event.completedTasks}/${event.totalTasks} TASKS DONE';
+}
+
+String _formatEventDate(DateTime date) {
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  return '${months[date.month - 1]} ${date.day}, ${date.year}';
 }
 
 class _SearchBar extends StatelessWidget {

@@ -61,6 +61,10 @@ void main() {
     expect(fakeEventApiService.createdEvent?.eventName, 'Smith & Co. Wedding');
     expect(fakeEventApiService.createdEvent?.location, 'San Francisco, CA');
     expect(fakeEventApiService.createdEvent?.eventDate, isNotNull);
+    expect(find.textContaining('days left'), findsOneWidget);
+    expect(find.text('View Checklist'), findsOneWidget);
+    expect(find.text('Create Wishlist'), findsOneWidget);
+    expect(find.text('Add Event'), findsOneWidget);
   });
 }
 

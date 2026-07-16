@@ -9,6 +9,10 @@ import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
 
 const String _googleMapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
+const bool _skipCreateEventBackend = bool.fromEnvironment(
+  'SKIP_CREATE_EVENT_BACKEND',
+  defaultValue: false,
+);
 
 class PlanYourEventScreen extends ConsumerStatefulWidget {
   const PlanYourEventScreen({super.key});
@@ -91,25 +95,25 @@ class _PlanYourEventScreenState extends ConsumerState<PlanYourEventScreen> {
       return;
     }
 
+    final event = CreateEventRequest(
+      eventType: _selectedEventType,
+      eventName: eventName,
+      eventDate: _selectedDate,
+      location: location,
+    );
+
     setState(() => _isSubmitting = true);
 
     try {
-      await ref
-          .read(eventApiServiceProvider)
-          .createEvent(
-            CreateEventRequest(
-              eventType: _selectedEventType,
-              eventName: eventName,
-              eventDate: _selectedDate,
-              location: location,
-            ),
-          );
+      if (!_skipCreateEventBackend) {
+        await ref.read(eventApiServiceProvider).createEvent(event);
+      }
+
+      _setActiveEvent(event);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event created successfully.')),
-      );
+      Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
 
@@ -121,6 +125,15 @@ class _PlanYourEventScreenState extends ConsumerState<PlanYourEventScreen> {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  void _setActiveEvent(CreateEventRequest event) {
+    ref.read(activeEventProvider.notifier).state = ActiveEvent(
+      eventType: event.eventType,
+      eventName: event.eventName,
+      eventDate: event.eventDate,
+      location: event.location,
+    );
   }
 
   @override
