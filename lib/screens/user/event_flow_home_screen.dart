@@ -9,6 +9,7 @@ import '../../providers/wishlist_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'chat_screen.dart';
 import 'checklist_screen.dart';
 import 'create_wishlist_screen.dart';
 import 'plan_your_event_screen.dart';
@@ -1214,7 +1215,7 @@ class _EventFlowBottomNav extends ConsumerWidget {
 
   static const List<_BottomNavItemData> _items = [
     _BottomNavItemData('Home', Icons.home_rounded, true),
-    _BottomNavItemData('Planner', Icons.calendar_month_rounded, false),
+    _BottomNavItemData('Chat', Icons.chat_bubble_rounded, false),
     _BottomNavItemData('Checklist', Icons.fact_check_rounded, false),
     _BottomNavItemData('Profile', Icons.person_rounded, false),
   ];
@@ -1243,7 +1244,13 @@ class _EventFlowBottomNav extends ConsumerWidget {
           children: _items.map((item) {
             return _BottomNavItem(
               item: item,
-              onTap: item.label == 'Checklist'
+              onTap: item.label == 'Chat'
+                  ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                      );
+                    }
+                  : item.label == 'Checklist'
                   ? () {
                       Navigator.of(context).push(
                         MaterialPageRoute(

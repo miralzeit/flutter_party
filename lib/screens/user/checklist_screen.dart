@@ -6,6 +6,7 @@ import '../../services/checklist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'chat_screen.dart';
 import 'event_flow_home_screen.dart';
 
 const bool _skipChecklistBackend = bool.fromEnvironment(
@@ -588,9 +589,14 @@ class _ChecklistBottomNav extends StatelessWidget {
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
               label: 'Chat',
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const ChatScreen()),
+                );
+              },
             ),
             const _BottomNavItem(
               icon: Icons.fact_check_rounded,

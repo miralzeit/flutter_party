@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
+import 'package:flutter_party/services/chat_api_service.dart';
+import 'package:flutter_party/providers/chat_provider.dart';
 import 'package:flutter_party/services/checklist_api_service.dart';
 import 'package:flutter_party/providers/checklist_provider.dart';
 import 'package:flutter_party/providers/event_provider.dart';
@@ -22,6 +24,7 @@ void main() {
         overrides: [
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
           eventApiServiceProvider.overrideWithValue(fakeEventApiService),
+          chatApiServiceProvider.overrideWithValue(_FakeChatApiService()),
           checklistApiServiceProvider.overrideWithValue(
             _FakeChecklistApiService(),
           ),
@@ -124,11 +127,39 @@ void main() {
 
     expect(find.text('1/2 TASKS DONE'), findsOneWidget);
 
+    await tester.tap(find.text('Chat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Evergreen Assistant'), findsOneWidget);
+    expect(find.text('ONLINE'), findsOneWidget);
+    expect(find.text('TODAY'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).last,
+      'Suggest a venue in Bethlehem',
+    );
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Suggest a venue in Bethlehem'), findsWidgets);
+    expect(
+      find.text('AI reply for: Suggest a venue in Bethlehem'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Checklist'));
     await tester.pumpAndSettle();
 
     expect(find.text('Smith & Co. Wedding'), findsOneWidget);
     expect(find.text('Book ceremony music'), findsOneWidget);
+
+    await tester.tap(find.text('Chat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Evergreen Assistant'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
@@ -223,6 +254,16 @@ class _FakeEventApiService extends EventApiService {
   @override
   Future<void> createEvent(CreateEventRequest event) async {
     createdEvent = event;
+  }
+}
+
+class _FakeChatApiService extends ChatApiService {
+  String? lastMessage;
+
+  @override
+  Future<ChatReply> sendMessage(String message) async {
+    lastMessage = message;
+    return ChatReply(message: 'AI reply for: $message');
   }
 }
 
