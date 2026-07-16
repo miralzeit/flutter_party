@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
+import 'package:flutter_party/services/user_profile_api_service.dart';
+import 'package:flutter_party/providers/user_profile_provider.dart';
 import 'package:flutter_party/services/chat_api_service.dart';
 import 'package:flutter_party/providers/chat_provider.dart';
 import 'package:flutter_party/services/checklist_api_service.dart';
@@ -25,6 +27,9 @@ void main() {
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
           eventApiServiceProvider.overrideWithValue(fakeEventApiService),
           chatApiServiceProvider.overrideWithValue(_FakeChatApiService()),
+          userProfileApiServiceProvider.overrideWithValue(
+            _FakeUserProfileApiService(),
+          ),
           checklistApiServiceProvider.overrideWithValue(
             _FakeChecklistApiService(),
           ),
@@ -167,10 +172,50 @@ void main() {
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Evergreen User'), findsOneWidget);
-    expect(find.text('user@evergreen.events'), findsOneWidget);
+    expect(find.text('Alexander Sterling'), findsOneWidget);
+    expect(find.text('alex.sterling@evergreen.co'), findsOneWidget);
     expect(find.text('1 Active Events'), findsOneWidget);
     expect(find.text('Tasks Pending'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Edit Profile'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Back to Profile'), findsOneWidget);
+    expect(find.text('Edit Profile'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Full Name'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText).at(0), 'Maya Evergreen');
+    await tester.enterText(
+      find.byType(EditableText).at(1),
+      'maya@evergreen.events',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Save Changes'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Save Changes'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -140));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Save Changes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Maya Evergreen'), findsOneWidget);
+    expect(find.text('maya@evergreen.events'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('ACCOUNT SETTINGS'),
@@ -253,6 +298,21 @@ void main() {
 
     expect(find.text('Wedding Registry'), findsOneWidget);
     expect(find.text('Demo Registry Lamp'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Logout'),
+      500,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Logout'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Log In'), findsOneWidget);
   });
 }
 
@@ -311,6 +371,16 @@ class _FakeChatApiService extends ChatApiService {
   Future<ChatReply> sendMessage(String message) async {
     lastMessage = message;
     return ChatReply(message: 'AI reply for: $message');
+  }
+}
+
+class _FakeUserProfileApiService extends UserProfileApiService {
+  UserProfile? updatedProfile;
+
+  @override
+  Future<UserProfile> updateProfile(UserProfile profile) async {
+    updatedProfile = profile;
+    return profile;
   }
 }
 

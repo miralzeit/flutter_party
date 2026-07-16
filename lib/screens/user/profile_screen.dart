@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/checklist_provider.dart';
 import '../../providers/event_provider.dart';
+import '../../providers/user_profile_provider.dart';
+import '../../services/user_profile_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import '../login_register_screen.dart';
 import 'chat_screen.dart';
 import 'checklist_screen.dart';
+import 'edit_profile_screen.dart';
 import 'event_flow_home_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -16,6 +20,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeEvent = ref.watch(activeEventProvider);
+    final profile = ref.watch(userProfileProvider);
     final tasks = ref.watch(checklistTasksProvider);
     final activeEvents = activeEvent == null ? 0 : 1;
     final pendingTasks = tasks.where((task) => !task.isCompleted).length;
@@ -34,7 +39,10 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
                     children: [
-                      _ProfileSummaryCard(activeEvents: activeEvents),
+                      _ProfileSummaryCard(
+                        activeEvents: activeEvents,
+                        profile: profile,
+                      ),
                       const SizedBox(height: 16),
                       _QuickSnapshotCard(
                         totalEvents: totalEvents,
@@ -44,19 +52,26 @@ class ProfileScreen extends ConsumerWidget {
                       const SizedBox(height: 22),
                       const _SectionLabel('ACCOUNT SETTINGS'),
                       const SizedBox(height: 10),
-                      const _SettingsCard(
+                      _SettingsCard(
                         rows: [
                           _SettingsRowData(
                             icon: Icons.person_rounded,
                             title: 'Edit Profile',
                             subtitle: 'Update personal information',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const EditProfileScreen(),
+                                ),
+                              );
+                            },
                           ),
-                          _SettingsRowData(
+                          const _SettingsRowData(
                             icon: Icons.notifications_rounded,
                             title: 'Notifications',
                             subtitle: 'Manage push and email alerts',
                           ),
-                          _SettingsRowData(
+                          const _SettingsRowData(
                             icon: Icons.lock_rounded,
                             title: 'Security & Password',
                             subtitle: '2FA and login security',
@@ -127,9 +142,13 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _ProfileSummaryCard extends StatelessWidget {
-  const _ProfileSummaryCard({required this.activeEvents});
+  const _ProfileSummaryCard({
+    required this.activeEvents,
+    required this.profile,
+  });
 
   final int activeEvents;
+  final UserProfile profile;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +189,7 @@ class _ProfileSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'Evergreen User',
+            profile.fullName,
             textAlign: TextAlign.center,
             style: AppTextStyles.headlineMd(
               color: AppColors.eventBlack,
@@ -178,7 +197,7 @@ class _ProfileSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            'user@evergreen.events',
+            profile.email,
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMd(
               color: AppColors.eventMutedForeground,
@@ -351,6 +370,7 @@ class _SettingsRowData {
     this.subtitle,
     this.trailing,
     this.showChevron = true,
+    this.onTap,
   });
 
   final IconData icon;
@@ -358,6 +378,7 @@ class _SettingsRowData {
   final String? subtitle;
   final Widget? trailing;
   final bool showChevron;
+  final VoidCallback? onTap;
 }
 
 class _SettingsRow extends StatelessWidget {
@@ -367,50 +388,53 @@ class _SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: const BoxDecoration(
-              color: AppColors.eventMutedBackground,
-              shape: BoxShape.circle,
+    return InkWell(
+      onTap: data.onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: AppColors.eventMutedBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(data.icon, color: AppColors.eventPrimary, size: 20),
             ),
-            child: Icon(data.icon, color: AppColors.eventPrimary, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: AppTextStyles.labelMd(
-                    color: AppColors.eventBlack,
-                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
-                ),
-                if (data.subtitle != null) ...[
-                  const SizedBox(height: 3),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    data.subtitle!,
-                    style: AppTextStyles.labelSm(
-                      color: AppColors.eventMutedForeground,
-                    ).copyWith(letterSpacing: 0),
+                    data.title,
+                    style: AppTextStyles.labelMd(
+                      color: AppColors.eventBlack,
+                    ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
                   ),
+                  if (data.subtitle != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      data.subtitle!,
+                      style: AppTextStyles.labelSm(
+                        color: AppColors.eventMutedForeground,
+                      ).copyWith(letterSpacing: 0),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          if (data.trailing != null)
-            data.trailing!
-          else if (data.showChevron)
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.eventMutedForeground,
-            ),
-        ],
+            if (data.trailing != null)
+              data.trailing!
+            else if (data.showChevron)
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.eventMutedForeground,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -676,7 +700,12 @@ class _LogoutButton extends StatelessWidget {
       width: double.infinity,
       height: 50,
       child: TextButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginRegisterScreen()),
+            (route) => false,
+          );
+        },
         icon: const Icon(Icons.logout_rounded, size: 20),
         label: const Text('Logout'),
         style: TextButton.styleFrom(
