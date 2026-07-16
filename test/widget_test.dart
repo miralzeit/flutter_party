@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
 import 'package:flutter_party/models/marketplace_vendor.dart';
+import 'package:flutter_party/services/checklist_api_service.dart';
+import 'package:flutter_party/providers/checklist_provider.dart';
 import 'package:flutter_party/providers/event_provider.dart';
 import 'package:flutter_party/providers/vendor_marketplace_provider.dart';
 import 'package:flutter_party/services/wishlist_api_service.dart';
@@ -20,6 +22,9 @@ void main() {
         overrides: [
           vendorApiServiceProvider.overrideWithValue(_FakeVendorApiService()),
           eventApiServiceProvider.overrideWithValue(fakeEventApiService),
+          checklistApiServiceProvider.overrideWithValue(
+            _FakeChecklistApiService(),
+          ),
           wishlistApiServiceProvider.overrideWithValue(
             _FakeWishlistApiService(),
           ),
@@ -70,6 +75,63 @@ void main() {
     expect(find.text('View Checklist'), findsOneWidget);
     expect(find.text('Create Wishlist'), findsOneWidget);
     expect(find.text('Add Event'), findsOneWidget);
+
+    await tester.tap(find.text('View Checklist'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Smith & Co. Wedding'), findsOneWidget);
+    expect(find.text('EVENT MILESTONE'), findsOneWidget);
+    expect(find.text('0 / 0 Tasks\nCompleted'), findsOneWidget);
+    expect(find.text('Upcoming: 0'), findsOneWidget);
+    expect(find.text('Add Task'), findsOneWidget);
+
+    await tester.tap(find.text('Add Task'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(EditableText).last,
+      'Confirm florist booking',
+    );
+    await tester.tap(find.text('Create Task'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirm florist booking'), findsOneWidget);
+    expect(find.text('0 / 1 Tasks\nCompleted'), findsOneWidget);
+    expect(find.text('0%'), findsOneWidget);
+    expect(find.text('Upcoming: 1'), findsOneWidget);
+
+    await tester.tap(find.text('Add Task'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(EditableText).last,
+      'Book ceremony music',
+    );
+    await tester.tap(find.text('Create Task'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 / 2 Tasks\nCompleted'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+    expect(find.text('Upcoming: 1'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Book ceremony music')).dy,
+      lessThan(tester.getTopLeft(find.text('Confirm florist booking')).dy),
+    );
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1/2 TASKS DONE'), findsOneWidget);
+
+    await tester.tap(find.text('Checklist'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Smith & Co. Wedding'), findsOneWidget);
+    expect(find.text('Book ceremony music'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Create Wishlist'));
     await tester.pumpAndSettle();
@@ -161,6 +223,22 @@ class _FakeEventApiService extends EventApiService {
   @override
   Future<void> createEvent(CreateEventRequest event) async {
     createdEvent = event;
+  }
+}
+
+class _FakeChecklistApiService extends ChecklistApiService {
+  CreateChecklistTaskRequest? createdTask;
+  var _nextId = 0;
+
+  @override
+  Future<ChecklistTask> createTask(CreateChecklistTaskRequest task) async {
+    createdTask = task;
+    _nextId += 1;
+    return ChecklistTask(
+      id: 'task_$_nextId',
+      name: task.name,
+      dueDate: task.dueDate,
+    );
   }
 }
 

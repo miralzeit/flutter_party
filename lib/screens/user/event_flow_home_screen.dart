@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/marketplace_vendor.dart';
+import '../../providers/checklist_provider.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/vendor_marketplace_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import 'checklist_screen.dart';
 import 'create_wishlist_screen.dart';
 import 'plan_your_event_screen.dart';
 import 'wedding_registry_screen.dart';
@@ -218,6 +220,10 @@ class _ActiveEventHeroCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final daysLeft = _daysUntil(event.eventDate);
     final savedWishlist = ref.watch(savedWishlistProvider);
+    final checklistTasks = ref.watch(checklistTasksProvider);
+    final completedTasks = checklistTasks
+        .where((task) => task.isCompleted)
+        .length;
 
     return Container(
       width: double.infinity,
@@ -261,7 +267,7 @@ class _ActiveEventHeroCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
-                  _taskBadgeText(event),
+                  _taskBadgeText(completedTasks, checklistTasks.length),
                   style: AppTextStyles.labelSm(
                     color: AppColors.eventPrimary,
                   ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.7),
@@ -286,7 +292,17 @@ class _ActiveEventHeroCard extends ConsumerWidget {
                 ).copyWith(fontWeight: FontWeight.w500, letterSpacing: 0),
               ),
               const SizedBox(height: 24),
-              _HeroActionButton(label: 'View Checklist', onPressed: () {}),
+              _HeroActionButton(
+                label: 'View Checklist',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ChecklistScreen(eventName: event.eventName),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
               _HeroActionButton(
                 label: savedWishlist == null
@@ -417,9 +433,9 @@ String _countdownText(int days) {
   return '$days days left';
 }
 
-String _taskBadgeText(ActiveEvent event) {
-  if (event.totalTasks <= 0) return '${event.completedTasks} TASKS DONE';
-  return '${event.completedTasks}/${event.totalTasks} TASKS DONE';
+String _taskBadgeText(int completedTasks, int totalTasks) {
+  if (totalTasks <= 0) return '$completedTasks TASKS DONE';
+  return '$completedTasks/$totalTasks TASKS DONE';
 }
 
 String _formatEventDate(DateTime date) {
@@ -1193,18 +1209,20 @@ class _WhatsAppGlyph extends StatelessWidget {
   }
 }
 
-class _EventFlowBottomNav extends StatelessWidget {
+class _EventFlowBottomNav extends ConsumerWidget {
   const _EventFlowBottomNav();
 
   static const List<_BottomNavItemData> _items = [
     _BottomNavItemData('Home', Icons.home_rounded, true),
     _BottomNavItemData('Planner', Icons.calendar_month_rounded, false),
-    _BottomNavItemData('Checklist', Icons.assignment_turned_in_rounded, false),
+    _BottomNavItemData('Checklist', Icons.fact_check_rounded, false),
     _BottomNavItemData('Profile', Icons.person_rounded, false),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeEvent = ref.watch(activeEventProvider);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
       decoration: const BoxDecoration(
@@ -1222,7 +1240,23 @@ class _EventFlowBottomNav extends StatelessWidget {
         top: false,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _items.map((item) => _BottomNavItem(item: item)).toList(),
+          children: _items.map((item) {
+            return _BottomNavItem(
+              item: item,
+              onTap: item.label == 'Checklist'
+                  ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ChecklistScreen(
+                            eventName:
+                                activeEvent?.eventName ?? 'Evergreen Events',
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+            );
+          }).toList(),
         ),
       ),
     );
@@ -1238,9 +1272,10 @@ class _BottomNavItemData {
 }
 
 class _BottomNavItem extends StatelessWidget {
-  const _BottomNavItem({required this.item});
+  const _BottomNavItem({required this.item, this.onTap});
 
   final _BottomNavItemData item;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1250,34 +1285,39 @@ class _BottomNavItem extends StatelessWidget {
     final iconColor = item.active
         ? AppColors.onPrimary
         : AppColors.eventMutedForeground;
-    return SizedBox(
-      width: 78,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: item.active ? 48 : 40,
-            height: 34,
-            decoration: BoxDecoration(
-              color: item.active
-                  ? AppColors.eventPrimary
-                  : AppColors.eventBackground,
-              borderRadius: BorderRadius.circular(AppRadius.full),
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: SizedBox(
+        width: 78,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: item.active ? 48 : 40,
+              height: 34,
+              decoration: BoxDecoration(
+                color: item.active
+                    ? AppColors.eventPrimary
+                    : AppColors.eventBackground,
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+              child: Icon(item.icon, color: iconColor, size: 23),
             ),
-            child: Icon(item.icon, color: iconColor, size: 23),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            item.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelSm(color: itemColor).copyWith(
-              fontWeight: item.active ? FontWeight.w800 : FontWeight.w600,
-              letterSpacing: 0,
+            const SizedBox(height: 4),
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.labelSm(color: itemColor).copyWith(
+                fontWeight: item.active ? FontWeight.w800 : FontWeight.w600,
+                letterSpacing: 0,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
