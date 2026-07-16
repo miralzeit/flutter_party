@@ -59,6 +59,7 @@ class ChecklistScreen extends ConsumerWidget {
                           onChanged: (value) {
                             _toggleTask(ref, task, value ?? false);
                           },
+                          onDelete: () => _deleteTask(ref, task),
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -89,6 +90,13 @@ class ChecklistScreen extends ConsumerWidget {
     ref.read(checklistTasksProvider.notifier).state = [
       ...updatedTasks.where((task) => !task.isCompleted),
       ...updatedTasks.where((task) => task.isCompleted),
+    ];
+  }
+
+  void _deleteTask(WidgetRef ref, ChecklistTask task) {
+    ref.read(checklistTasksProvider.notifier).state = [
+      for (final current in ref.read(checklistTasksProvider))
+        if (current.id != task.id) current,
     ];
   }
 
@@ -277,10 +285,15 @@ class _ActiveChecklistHeader extends StatelessWidget {
 }
 
 class _TaskCard extends StatelessWidget {
-  const _TaskCard({required this.task, required this.onChanged});
+  const _TaskCard({
+    required this.task,
+    required this.onChanged,
+    required this.onDelete,
+  });
 
   final ChecklistTask task;
   final ValueChanged<bool?> onChanged;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -328,6 +341,12 @@ class _TaskCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            tooltip: 'Delete task',
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline_rounded),
+            color: AppColors.eventMutedForeground,
           ),
         ],
       ),
@@ -442,9 +461,11 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
                   ),
                 );
 
+      final existingTasks = ref.read(checklistTasksProvider);
       ref.read(checklistTasksProvider.notifier).state = [
-        ...ref.read(checklistTasksProvider),
+        ...existingTasks.where((task) => !task.isCompleted),
         task,
+        ...existingTasks.where((task) => task.isCompleted),
       ];
 
       if (!mounted) return;

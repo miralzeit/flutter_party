@@ -132,6 +132,37 @@ void main() {
       lessThan(tester.getTopLeft(find.text('Confirm florist booking')).dy),
     );
 
+    await tester.scrollUntilVisible(
+      find.text('Add Task'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add Task'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(EditableText).last,
+      'Review seating chart',
+    );
+    await tester.tap(find.text('Create Task'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('Book ceremony music')).dy,
+      lessThan(tester.getTopLeft(find.text('Review seating chart')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Review seating chart')).dy,
+      lessThan(tester.getTopLeft(find.text('Confirm florist booking')).dy),
+    );
+
+    await tester.tap(find.byIcon(Icons.delete_outline_rounded).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Book ceremony music'), findsNothing);
+    expect(find.text('Review seating chart'), findsOneWidget);
+    expect(find.text('Confirm florist booking'), findsOneWidget);
+
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pumpAndSettle();
 
@@ -164,7 +195,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Smith & Co. Wedding'), findsOneWidget);
-    expect(find.text('Book ceremony music'), findsOneWidget);
+    expect(find.text('Review seating chart'), findsOneWidget);
 
     await tester.tap(find.text('Chat'));
     await tester.pumpAndSettle();
