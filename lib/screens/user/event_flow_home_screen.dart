@@ -1226,7 +1226,7 @@ class _EventFlowBottomNav extends ConsumerWidget {
     final activeEvent = ref.watch(activeEventProvider);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
       decoration: const BoxDecoration(
         color: AppColors.eventBackground,
         border: Border(top: BorderSide(color: AppColors.eventBorder)),
@@ -1313,7 +1313,7 @@ class _BottomNavItem extends StatelessWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               width: item.active ? 48 : 40,
-              height: 34,
+              height: 32,
               decoration: BoxDecoration(
                 color: item.active
                     ? AppColors.eventPrimary

@@ -14,6 +14,7 @@ import 'checklist_screen.dart';
 import 'edit_profile_screen.dart';
 import 'event_flow_home_screen.dart';
 import 'help_center_screen.dart';
+import 'notification_settings_screen.dart';
 import 'security_settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -68,10 +69,18 @@ class ProfileScreen extends ConsumerWidget {
                               );
                             },
                           ),
-                          const _SettingsRowData(
+                          _SettingsRowData(
                             icon: Icons.notifications_rounded,
                             title: 'Notifications',
                             subtitle: 'Manage push and email alerts',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const NotificationSettingsScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _SettingsRowData(
                             icon: Icons.lock_rounded,
@@ -916,7 +925,7 @@ class _BottomNavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 color: active
                     ? AppColors.eventSelectedBackground
@@ -928,6 +937,8 @@ class _BottomNavItem extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.labelSm(color: color).copyWith(
                 fontWeight: active ? FontWeight.w900 : FontWeight.w600,
                 letterSpacing: 0,

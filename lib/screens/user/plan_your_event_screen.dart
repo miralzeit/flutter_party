@@ -314,7 +314,7 @@ class _EventTypeSection extends StatelessWidget {
     return _SectionBlock(
       label: 'Select Event Type',
       child: SizedBox(
-        height: 62,
+        height: 66,
         child: _EventTypeScroller(
           options: _options,
           selectedEventType: selectedEventType,
@@ -611,7 +611,7 @@ class _DateInfoCard extends StatelessWidget {
     final valueColor = filled ? AppColors.onPrimary : AppColors.eventBlack;
 
     final card = Container(
-      height: 92,
+      constraints: const BoxConstraints(minHeight: 104),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: filled ? AppColors.eventPrimary : AppColors.eventBackground,
@@ -619,10 +619,11 @@ class _DateInfoCard extends StatelessWidget {
         border: filled ? null : Border.all(color: AppColors.eventBorder),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: iconColor, size: 22),
-          const Spacer(),
+          const SizedBox(height: 14),
           Text(
             label,
             style: AppTextStyles.labelSm(
@@ -635,6 +636,8 @@ class _DateInfoCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.labelMd(color: valueColor).copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
