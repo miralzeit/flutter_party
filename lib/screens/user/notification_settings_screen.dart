@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/notification_settings_provider.dart';
 import '../../services/notification_settings_api_service.dart';
@@ -60,7 +61,7 @@ class _NotificationSettingsScreenState
       if (!mounted) return;
       setState(() => _draft = saved);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notification preferences saved.')),
+        SnackBar(content: Text(context.tr('notifications.saved'))),
       );
     } catch (error) {
       if (!mounted) return;
@@ -74,9 +75,9 @@ class _NotificationSettingsScreenState
 
   void _discardChanges() {
     setState(() => _draft = ref.read(notificationPreferencesProvider));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Unsaved changes discarded.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('notifications.discarded'))),
+    );
   }
 
   void _updateDraft(NotificationPreferences value) {
@@ -103,7 +104,7 @@ class _NotificationSettingsScreenState
                         child: TextButton.icon(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                          label: const Text('Settings'),
+                          label: Text(context.tr('common.settings')),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.eventMutedForeground,
                             padding: EdgeInsets.zero,
@@ -112,7 +113,7 @@ class _NotificationSettingsScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Notification Settings',
+                        context.tr('notifications.title'),
                         style:
                             AppTextStyles.headlineLgMobile(
                               color: AppColors.eventBlack,
@@ -123,7 +124,7 @@ class _NotificationSettingsScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Choose how you want to be notified about your upcoming events and team communications.',
+                        context.tr('notifications.subtitle'),
                         style: AppTextStyles.bodyMd(
                           color: AppColors.eventMutedForeground,
                         ).copyWith(letterSpacing: 0),
@@ -131,13 +132,14 @@ class _NotificationSettingsScreenState
                       const SizedBox(height: 20),
                       _PreferenceCard(
                         icon: Icons.event_note_rounded,
-                        title: 'Event Reminders',
-                        description:
-                            'Stay on top of your schedule with timely alerts for your upcoming events.',
+                        title: context.tr('notifications.event_reminders'),
+                        description: context.tr(
+                          'notifications.event_reminders_desc',
+                        ),
                         rows: [
                           _PreferenceRowData(
-                            title: 'Push Notifications',
-                            subtitle: 'Receive alerts on your mobile device',
+                            title: context.tr('notifications.push'),
+                            subtitle: context.tr('notifications.push_desc'),
                             selected: _draft.pushNotifications,
                             onTap: () => _updateDraft(
                               _draft.copyWith(
@@ -146,8 +148,10 @@ class _NotificationSettingsScreenState
                             ),
                           ),
                           _PreferenceRowData(
-                            title: 'Email Summaries',
-                            subtitle: 'Daily agenda and weekly event reports',
+                            title: context.tr('notifications.email_summaries'),
+                            subtitle: context.tr(
+                              'notifications.email_summaries_desc',
+                            ),
                             selected: _draft.emailSummaries,
                             onTap: () => _updateDraft(
                               _draft.copyWith(
@@ -160,14 +164,16 @@ class _NotificationSettingsScreenState
                       const SizedBox(height: 16),
                       _PreferenceCard(
                         icon: Icons.request_quote_rounded,
-                        title: 'New Vendor Quotes',
-                        description:
-                            'Updates regarding your vendor bids and contract approvals.',
+                        title: context.tr('notifications.vendor_quotes'),
+                        description: context.tr(
+                          'notifications.vendor_quotes_desc',
+                        ),
                         rows: [
                           _PreferenceRowData(
-                            title: 'Quote Submission',
-                            subtitle:
-                                'Alert when a vendor submits a new proposal',
+                            title: context.tr('notifications.quote_submission'),
+                            subtitle: context.tr(
+                              'notifications.quote_submission_desc',
+                            ),
                             selected: _draft.quoteSubmission,
                             onTap: () => _updateDraft(
                               _draft.copyWith(
@@ -180,13 +186,16 @@ class _NotificationSettingsScreenState
                       const SizedBox(height: 16),
                       _PreferenceCard(
                         icon: Icons.phone_iphone_rounded,
-                        title: 'Platform Updates',
-                        description:
-                            'News about Evergreen feature releases and security updates.',
+                        title: context.tr('notifications.platform_updates'),
+                        description: context.tr(
+                          'notifications.platform_updates_desc',
+                        ),
                         rows: [
                           _PreferenceRowData(
-                            title: 'Product Features',
-                            subtitle: 'Be the first to know about new tools',
+                            title: context.tr('notifications.product_features'),
+                            subtitle: context.tr(
+                              'notifications.product_features_desc',
+                            ),
                             selected: _draft.productFeatures,
                             onTap: () => _updateDraft(
                               _draft.copyWith(
@@ -244,7 +253,7 @@ class _NotificationHeader extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Evergreen Events',
+              context.tr('common.app_name'),
               style: AppTextStyles.headlineMd(
                 color: AppColors.eventBlack,
               ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -426,7 +435,7 @@ class _ActionRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           ),
           child: Text(
-            'Discard Changes',
+            context.tr('common.discard_changes'),
             style: AppTextStyles.labelMd(
               color: AppColors.eventDarkIcon,
             ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0),
@@ -454,7 +463,7 @@ class _ActionRow extends StatelessWidget {
                   ),
                 )
               : Text(
-                  'Save Preferences',
+                  context.tr('common.save_preferences'),
                   style: AppTextStyles.labelMd(
                     color: AppColors.onPrimary,
                   ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -511,7 +520,7 @@ class _NotificationBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -522,7 +531,7 @@ class _NotificationBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -531,20 +540,22 @@ class _NotificationBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (_) => ChecklistScreen(
-                      eventName: activeEvent?.eventName ?? 'Evergreen Events',
+                      eventName:
+                          activeEvent?.eventName ??
+                          context.tr('common.app_name'),
                     ),
                   ),
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               active: true,
             ),
           ],

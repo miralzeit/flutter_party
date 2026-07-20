@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/security_provider.dart';
 import '../../services/security_api_service.dart';
@@ -713,7 +714,7 @@ class _DangerZoneCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
-            child: const Text('Deactivate Account'),
+            child: Text(context.tr('common.deactivate_account')),
           ),
         ],
       ),
@@ -794,7 +795,7 @@ class _SecurityBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -805,7 +806,7 @@ class _SecurityBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -814,7 +815,7 @@ class _SecurityBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -825,9 +826,9 @@ class _SecurityBottomNav extends ConsumerWidget {
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               active: true,
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/event_provider.dart';
 import '../../services/chat_api_service.dart';
@@ -195,7 +196,7 @@ class _ChatHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Evergreen Assistant',
+                        context.tr('chat.assistant_name'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style:
@@ -220,7 +221,7 @@ class _ChatHeader extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'ONLINE',
+                            context.tr('chat.online'),
                             style:
                                 AppTextStyles.labelSm(
                                   color: AppColors.eventMutedForeground,
@@ -286,7 +287,7 @@ class _TodayPill extends StatelessWidget {
         border: Border.all(color: AppColors.eventBorder),
       ),
       child: Text(
-        'TODAY',
+        context.tr('chat.today'),
         style: AppTextStyles.labelSm(
           color: AppColors.eventMutedForeground,
         ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.1),
@@ -425,7 +426,7 @@ class _TypingDots extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
-        'Typing...',
+        context.tr('common.loading'),
         style: AppTextStyles.labelSm(color: AppColors.eventMutedForeground),
       ),
     );
@@ -439,10 +440,10 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const prompts = [
-      _QuickPrompt(Icons.location_on_rounded, 'Suggest a venue in Bethlehem'),
-      _QuickPrompt(Icons.payments_rounded, 'Help me manage my budget'),
-      _QuickPrompt(Icons.restaurant_rounded, 'Compare catering packages'),
+    final prompts = [
+      _QuickPrompt(Icons.location_on_rounded, context.tr('chat.quick_venue')),
+      _QuickPrompt(Icons.payments_rounded, context.tr('chat.quick_budget')),
+      _QuickPrompt(Icons.restaurant_rounded, context.tr('chat.quick_catering')),
     ];
 
     return Container(
@@ -518,7 +519,7 @@ class _MessageInputBar extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
-                hintText: 'Chat with our AI assis...',
+                hintText: context.tr('chat.input_hint'),
                 suffixIcon: const Icon(
                   Icons.mic_none_rounded,
                   color: AppColors.eventMutedForeground,
@@ -611,7 +612,7 @@ class _ChatBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -620,14 +621,14 @@ class _ChatBottomNav extends ConsumerWidget {
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               active: true,
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -640,7 +641,7 @@ class _ChatBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ProfileScreen()),

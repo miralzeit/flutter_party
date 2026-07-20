@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/checklist_provider.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../services/user_profile_api_service.dart';
@@ -53,14 +55,16 @@ class ProfileScreen extends ConsumerWidget {
                         eventName: activeEvent?.eventName ?? 'Evergreen Events',
                       ),
                       const SizedBox(height: 22),
-                      const _SectionLabel('ACCOUNT SETTINGS'),
+                      _SectionLabel(context.tr('profile.account_settings')),
                       const SizedBox(height: 10),
                       _SettingsCard(
                         rows: [
                           _SettingsRowData(
                             icon: Icons.person_rounded,
-                            title: 'Edit Profile',
-                            subtitle: 'Update personal information',
+                            title: context.tr('profile.edit_profile'),
+                            subtitle: context.tr(
+                              'profile.edit_profile_subtitle',
+                            ),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -71,8 +75,10 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           _SettingsRowData(
                             icon: Icons.notifications_rounded,
-                            title: 'Notifications',
-                            subtitle: 'Manage push and email alerts',
+                            title: context.tr('profile.notifications'),
+                            subtitle: context.tr(
+                              'profile.notifications_subtitle',
+                            ),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -84,8 +90,8 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           _SettingsRowData(
                             icon: Icons.lock_rounded,
-                            title: 'Security & Password',
-                            subtitle: '2FA and login security',
+                            title: context.tr('profile.security_password'),
+                            subtitle: context.tr('profile.security_subtitle'),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -98,15 +104,15 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 22),
-                      const _SectionLabel('PREFERENCES'),
+                      _SectionLabel(context.tr('profile.preferences')),
                       const SizedBox(height: 10),
-                      const _PreferencesCard(),
+                      _PreferencesCard(),
                       const SizedBox(height: 22),
                       const _MyEventsHeader(),
                       const SizedBox(height: 10),
                       _MyEventsCard(activeEvent: activeEvent),
                       const SizedBox(height: 22),
-                      const _SectionLabel('SUPPORT'),
+                      _SectionLabel(context.tr('profile.support')),
                       const SizedBox(height: 10),
                       const _SupportCard(),
                       const SizedBox(height: 18),
@@ -276,11 +282,17 @@ class _QuickSnapshotCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionLabel('Quick Snapshot'),
+          _SectionLabel(context.tr('profile.quick_snapshot')),
           const SizedBox(height: 13),
-          _StatRow(label: 'Total Events', value: '$totalEvents'),
+          _StatRow(
+            label: context.tr('profile.total_events'),
+            value: '$totalEvents',
+          ),
           const SizedBox(height: 10),
-          _StatRow(label: 'Tasks Pending', value: '$pendingTasks'),
+          _StatRow(
+            label: context.tr('profile.tasks_pending'),
+            value: '$pendingTasks',
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -459,29 +471,35 @@ class _SettingsRow extends StatelessWidget {
   }
 }
 
-class _PreferencesCard extends StatelessWidget {
+class _PreferencesCard extends ConsumerWidget {
   const _PreferencesCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(appLocaleProvider);
+    final languageLabel = locale.languageCode == 'ar'
+        ? context.tr('profile.arabic')
+        : context.tr('profile.english');
+
     return _WhiteCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          const _SettingsRow(
+          _SettingsRow(
             data: _SettingsRowData(
               icon: Icons.language_rounded,
-              title: 'Language',
-              trailing: Text('English'),
+              title: context.tr('profile.language'),
+              trailing: _LanguageTrailing(label: languageLabel),
               showChevron: false,
+              onTap: () => _showLanguageSelector(context, ref),
             ),
           ),
           const Divider(height: 1, color: AppColors.eventBorder),
-          const _SettingsRow(
+          _SettingsRow(
             data: _SettingsRowData(
               icon: Icons.credit_card_rounded,
-              title: 'Currency',
-              trailing: Text('USD'),
+              title: context.tr('profile.currency'),
+              trailing: const Text('USD'),
               showChevron: false,
             ),
           ),
@@ -489,13 +507,134 @@ class _PreferencesCard extends StatelessWidget {
           _SettingsRow(
             data: _SettingsRowData(
               icon: Icons.dark_mode_rounded,
-              title: 'Theme',
+              title: context.tr('profile.theme'),
               trailing: const _ThemeToggle(),
               showChevron: false,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.read(appLocaleProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.eventBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _LanguageOption(
+                  label: context.tr('profile.english'),
+                  selected: currentLocale.languageCode == 'en',
+                  onTap: () =>
+                      _selectLanguage(context, ref, const Locale('en')),
+                ),
+                const SizedBox(height: 10),
+                _LanguageOption(
+                  label: context.tr('profile.arabic'),
+                  selected: currentLocale.languageCode == 'ar',
+                  onTap: () =>
+                      _selectLanguage(context, ref, const Locale('ar')),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _selectLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    Locale locale,
+  ) async {
+    await ref.read(appLocaleProvider.notifier).setLocale(locale);
+    if (context.mounted) Navigator.of(context).pop();
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.eventSelectedBackground
+              : AppColors.eventMutedBackground,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: selected ? AppColors.eventPrimary : AppColors.eventBorder,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.labelMd(
+                  color: AppColors.eventBlack,
+                ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
+              ),
+            ),
+            if (selected)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.eventPrimary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageTrailing extends StatelessWidget {
+  const _LanguageTrailing({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.labelMd(
+            color: AppColors.eventMutedForeground,
+          ).copyWith(fontWeight: FontWeight.w700, letterSpacing: 0),
+        ),
+        const SizedBox(width: 4),
+        const Icon(
+          Icons.chevron_right_rounded,
+          color: AppColors.eventMutedForeground,
+        ),
+      ],
     );
   }
 }
@@ -549,9 +688,9 @@ class _MyEventsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: _SectionLabel('MY EVENTS')),
+        Expanded(child: _SectionLabel(context.tr('profile.my_events'))),
         Text(
-          'See all',
+          context.tr('profile.see_all'),
           style: AppTextStyles.labelSm(
             color: AppColors.eventMutedForeground,
           ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0),
@@ -698,20 +837,20 @@ class _SupportCard extends StatelessWidget {
       rows: [
         _SettingsRowData(
           icon: Icons.help_outline_rounded,
-          title: 'Help Center',
+          title: context.tr('profile.help_center'),
           onTap: () {
             Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const HelpCenterScreen()));
           },
         ),
-        const _SettingsRowData(
+        _SettingsRowData(
           icon: Icons.description_rounded,
-          title: 'Terms of Service',
+          title: context.tr('profile.terms'),
         ),
-        const _SettingsRowData(
+        _SettingsRowData(
           icon: Icons.shield_rounded,
-          title: 'Privacy Policy',
+          title: context.tr('profile.privacy'),
         ),
       ],
     );
@@ -734,7 +873,7 @@ class _LogoutButton extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.logout_rounded, size: 20),
-        label: const Text('Logout'),
+        label: Text(context.tr('profile.logout')),
         style: TextButton.styleFrom(
           backgroundColor: const Color(0xFFFFECEC),
           foregroundColor: const Color(0xFFD34B4B),
@@ -758,7 +897,7 @@ class _FooterText extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Evergreen Events App v2.4.1',
+          context.tr('profile.version'),
           textAlign: TextAlign.center,
           style: AppTextStyles.labelSm(
             color: AppColors.eventMutedForeground,
@@ -766,7 +905,7 @@ class _FooterText extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '© 2024 Evergreen Event Planning Solutions. All Rights Reserved.',
+          context.tr('profile.copyright'),
           textAlign: TextAlign.center,
           style: AppTextStyles.labelSm(
             color: AppColors.eventMutedForeground,
@@ -855,7 +994,7 @@ class _ProfileBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -866,7 +1005,7 @@ class _ProfileBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -875,7 +1014,7 @@ class _ProfileBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -886,9 +1025,9 @@ class _ProfileBottomNav extends ConsumerWidget {
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               active: true,
             ),
           ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/marketplace_vendor.dart';
 import '../../providers/checklist_provider.dart';
 import '../../providers/event_provider.dart';
@@ -53,7 +55,7 @@ class _HeaderBar extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'EventFlow',
+            context.tr('common.eventflow'),
             style: AppTextStyles.headlineLgMobile(
               color: AppColors.eventBlack,
             ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0),
@@ -156,14 +158,14 @@ class _EmptyHeroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your Dream Event Starts Here',
+            context.tr('home.empty_hero_title'),
             style: AppTextStyles.headlineLgMobile(
               color: AppColors.onPrimary,
             ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0),
           ),
           const SizedBox(height: 10),
           Text(
-            "No events scheduled. Let's create your first one.",
+            context.tr('home.empty_hero_subtitle'),
             style: AppTextStyles.labelMd(
               color: AppColors.eventSoftText,
             ).copyWith(fontWeight: FontWeight.w500, letterSpacing: 0),
@@ -199,7 +201,7 @@ class _EmptyHeroCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Start Planning Your Event',
+                  context.tr('home.start_planning'),
                   style: AppTextStyles.labelMd(
                     color: AppColors.eventBlack,
                   ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0),
@@ -269,7 +271,11 @@ class _ActiveEventHeroCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
-                  _taskBadgeText(completedTasks, checklistTasks.length),
+                  _taskBadgeText(
+                    context,
+                    completedTasks,
+                    checklistTasks.length,
+                  ),
                   style: AppTextStyles.labelSm(
                     color: AppColors.eventPrimary,
                   ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.7),
@@ -277,7 +283,7 @@ class _ActiveEventHeroCard extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                _countdownText(daysLeft),
+                _countdownText(context, daysLeft),
                 style: AppTextStyles.headlineLg(color: AppColors.onPrimary)
                     .copyWith(
                       fontSize: 42,
@@ -288,14 +294,14 @@ class _ActiveEventHeroCard extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '${event.eventType} • ${_formatEventDate(event.eventDate)}',
+                '${event.eventType} • ${_formatEventDate(context, event.eventDate)}',
                 style: AppTextStyles.bodyMd(
                   color: AppColors.eventSoftText,
                 ).copyWith(fontWeight: FontWeight.w500, letterSpacing: 0),
               ),
               const SizedBox(height: 24),
               _HeroActionButton(
-                label: 'View Checklist',
+                label: context.tr('home.view_checklist'),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -308,8 +314,8 @@ class _ActiveEventHeroCard extends ConsumerWidget {
               const SizedBox(height: 12),
               _HeroActionButton(
                 label: savedWishlist == null
-                    ? 'Create Wishlist'
-                    : 'View Wishlist',
+                    ? context.tr('home.create_wishlist')
+                    : context.tr('home.view_wishlist'),
                 icon: Icons.card_giftcard_rounded,
                 translucent: true,
                 onPressed: () {
@@ -406,7 +412,7 @@ class _AddEventButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.add_rounded, size: 22),
-        label: const Text('Add Event'),
+        label: Text(context.tr('home.add_event')),
         style: OutlinedButton.styleFrom(
           backgroundColor: AppColors.eventBackground,
           foregroundColor: AppColors.eventBlack,
@@ -430,33 +436,25 @@ int _daysUntil(DateTime date) {
   return days < 0 ? 0 : days;
 }
 
-String _countdownText(int days) {
-  if (days == 1) return '1 day left';
-  return '$days days left';
+String _countdownText(BuildContext context, int days) {
+  if (days <= 0) return context.tr('home.today');
+  return context.tr('home.days_left', {'count': days});
 }
 
-String _taskBadgeText(int completedTasks, int totalTasks) {
-  if (totalTasks <= 0) return '$completedTasks TASKS DONE';
-  return '$completedTasks/$totalTasks TASKS DONE';
+String _taskBadgeText(
+  BuildContext context,
+  int completedTasks,
+  int totalTasks,
+) {
+  return context.tr('home.tasks_done', {
+    'completed': completedTasks,
+    'total': totalTasks,
+  });
 }
 
-String _formatEventDate(DateTime date) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+String _formatEventDate(BuildContext context, DateTime date) {
+  final localeName = Localizations.localeOf(context).toLanguageTag();
+  return DateFormat.yMMMd(localeName).format(date);
 }
 
 class _SearchBar extends StatelessWidget {
@@ -481,7 +479,7 @@ class _SearchBar extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Search venues, artists, or decor...',
+              context.tr('home.search_placeholder'),
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMd(
                 color: AppColors.eventMutedForeground,
@@ -511,7 +509,10 @@ class _CategorySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeader(title: 'Browse Categories', trailing: 'View All'),
+        _SectionHeader(
+          title: context.tr('home.browse_categories'),
+          trailing: context.tr('home.view_all'),
+        ),
         const SizedBox(height: 16),
         SizedBox(
           height: 88,
@@ -625,7 +626,7 @@ class _CategoryItem extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            category.label,
+            _categoryLabel(context, category.label),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.labelSm(
@@ -636,6 +637,16 @@ class _CategoryItem extends StatelessWidget {
       ),
     );
   }
+}
+
+String _categoryLabel(BuildContext context, String label) {
+  return switch (label) {
+    'Halls' => context.tr('home.halls'),
+    'Makeup' => context.tr('home.makeup'),
+    'Hair' => context.tr('home.hair'),
+    'Catering' => context.tr('home.catering'),
+    _ => label,
+  };
 }
 
 class _VendorSection extends ConsumerStatefulWidget {
@@ -715,21 +726,25 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionHeader(
-          title: 'Nearby Vendors',
-          trailing: _VendorSection._location,
+        _SectionHeader(
+          title: context.tr('home.nearby_vendors'),
+          trailing: context.tr('home.location'),
           trailingIcon: Icons.location_on_rounded,
         ),
         const SizedBox(height: 16),
         if (_isLoading)
-          const _VendorStatusCard.loading()
+          _VendorStatusCard.loading(context)
         else if (_errorMessage != null && _vendors.isEmpty)
           _VendorStatusCard.error(
+            context,
             message: _errorMessage!,
             onRetry: () => _loadVendors(refresh: true),
           )
         else if (_vendors.isEmpty)
-          _VendorStatusCard.empty(onRetry: () => _loadVendors(refresh: true))
+          _VendorStatusCard.empty(
+            context,
+            onRetry: () => _loadVendors(refresh: true),
+          )
         else ...[
           for (var index = 0; index < _vendors.length; index++) ...[
             _VendorCard(vendor: _vendors[index]),
@@ -851,7 +866,7 @@ class _VendorCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _VendorActionButton(
-                        label: 'Call',
+                        label: context.tr('home.call'),
                         icon: const Icon(Icons.phone_rounded, size: 19),
                         filled: true,
                         onPressed: () {},
@@ -860,7 +875,7 @@ class _VendorCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _VendorActionButton(
-                        label: 'WhatsApp',
+                        label: context.tr('common.whatsapp'),
                         icon: const _WhatsAppGlyph(),
                         filled: false,
                         onPressed: () {},
@@ -940,26 +955,27 @@ class _VendorStatusCard extends StatelessWidget {
     this.onRetry,
   });
 
-  const _VendorStatusCard.loading()
+  _VendorStatusCard.loading(BuildContext context)
     : this._(
-        title: 'Loading vendors',
-        message: 'Finding available vendors near you.',
+        title: context.tr('home.loading_vendors'),
+        message: context.tr('home.loading_vendors_subtitle'),
         isLoading: true,
       );
 
-  const _VendorStatusCard.error({
+  _VendorStatusCard.error(
+    BuildContext context, {
     required String message,
     required VoidCallback onRetry,
   }) : this._(
-         title: 'Could not load vendors',
+         title: context.tr('home.could_not_load_vendors'),
          message: message,
          onRetry: onRetry,
        );
 
-  const _VendorStatusCard.empty({required VoidCallback onRetry})
+  _VendorStatusCard.empty(BuildContext context, {required VoidCallback onRetry})
     : this._(
-        title: 'No vendors found',
-        message: 'Try again or choose another location.',
+        title: context.tr('home.no_vendors_found'),
+        message: context.tr('home.no_vendors_subtitle'),
         onRetry: onRetry,
       );
 
@@ -1021,7 +1037,7 @@ class _VendorStatusCard extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Retry'),
+              label: Text(context.tr('common.retry')),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.eventAccent,
                 padding: EdgeInsets.zero,
@@ -1057,7 +1073,7 @@ class _InlineVendorError extends StatelessWidget {
             ).copyWith(letterSpacing: 0),
           ),
         ),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(onPressed: onRetry, child: Text(context.tr('common.retry'))),
       ],
     );
   }
@@ -1215,10 +1231,10 @@ class _EventFlowBottomNav extends ConsumerWidget {
   const _EventFlowBottomNav();
 
   static const List<_BottomNavItemData> _items = [
-    _BottomNavItemData('Home', Icons.home_rounded, true),
-    _BottomNavItemData('Chat', Icons.chat_bubble_rounded, false),
-    _BottomNavItemData('Checklist', Icons.fact_check_rounded, false),
-    _BottomNavItemData('Profile', Icons.person_rounded, false),
+    _BottomNavItemData('nav.home', Icons.home_rounded, true),
+    _BottomNavItemData('nav.chat', Icons.chat_bubble_rounded, false),
+    _BottomNavItemData('nav.checklist', Icons.fact_check_rounded, false),
+    _BottomNavItemData('nav.profile', Icons.person_rounded, false),
   ];
 
   @override
@@ -1245,13 +1261,13 @@ class _EventFlowBottomNav extends ConsumerWidget {
           children: _items.map((item) {
             return _BottomNavItem(
               item: item,
-              onTap: item.label == 'Chat'
+              onTap: item.label == 'nav.chat'
                   ? () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const ChatScreen()),
                       );
                     }
-                  : item.label == 'Checklist'
+                  : item.label == 'nav.checklist'
                   ? () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1262,7 +1278,7 @@ class _EventFlowBottomNav extends ConsumerWidget {
                         ),
                       );
                     }
-                  : item.label == 'Profile'
+                  : item.label == 'nav.profile'
                   ? () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -1324,7 +1340,7 @@ class _BottomNavItem extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              item.label,
+              context.tr(item.label),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.labelSm(color: itemColor).copyWith(

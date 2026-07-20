@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/checklist_provider.dart';
 import '../../services/checklist_api_service.dart';
 import '../../theme/app_colors.dart';
@@ -170,7 +172,9 @@ class _MilestoneCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentText = '${(percent * 100).round()}%';
+    final percentText = context.tr('checklist.percent', {
+      'percent': (percent * 100).round(),
+    });
 
     return Container(
       width: double.infinity,
@@ -194,7 +198,7 @@ class _MilestoneCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'EVENT MILESTONE',
+            context.tr('checklist.event_milestone'),
             style: AppTextStyles.labelSm(
               color: AppColors.eventSoftText,
             ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.2),
@@ -267,14 +271,14 @@ class _ActiveChecklistHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'ACTIVE CHECKLIST',
+            context.tr('checklist.active_checklist'),
             style: AppTextStyles.labelSm(
               color: AppColors.eventDarkIcon,
             ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.15),
           ),
         ),
         Text(
-          'Upcoming: $upcoming',
+          context.tr('checklist.upcoming', {'count': upcoming}),
           style: AppTextStyles.labelMd(
             color: AppColors.eventBlack,
           ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -334,7 +338,7 @@ class _TaskCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Due ${_formatDate(task.dueDate)}',
+                  'Due ${_formatDate(context, task.dueDate)}',
                   style: AppTextStyles.labelSm(
                     color: AppColors.eventMutedForeground,
                   ).copyWith(letterSpacing: 0),
@@ -392,7 +396,7 @@ class _AddTaskButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Add Task',
+                  context.tr('checklist.add_task'),
                   style: AppTextStyles.labelMd(
                     color: AppColors.eventBlack,
                   ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -442,7 +446,7 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
   Future<void> _submit() async {
     final name = _taskController.text.trim();
     if (name.isEmpty) {
-      _showMessage('Enter a task name first.');
+      _showMessage(context.tr('checklist.task_required'));
       return;
     }
 
@@ -514,7 +518,7 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
               ),
               const SizedBox(height: 18),
               Text(
-                'Add Task',
+                context.tr('checklist.add_task'),
                 style: AppTextStyles.headlineMd(
                   color: AppColors.eventBlack,
                 ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -524,7 +528,7 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
                 controller: _taskController,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
-                  hintText: 'E.g. Confirm florist booking',
+                  hintText: context.tr('checklist.task_name_hint'),
                   filled: true,
                   fillColor: AppColors.eventMutedBackground,
                   border: OutlineInputBorder(
@@ -537,7 +541,7 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
               OutlinedButton.icon(
                 onPressed: _pickDate,
                 icon: const Icon(Icons.calendar_today_rounded, size: 18),
-                label: Text(_formatDate(_dueDate)),
+                label: Text(_formatDate(context, _dueDate)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.eventBlack,
                   side: const BorderSide(color: AppColors.eventBorder),
@@ -562,7 +566,11 @@ class _AddTaskSheetState extends ConsumerState<_AddTaskSheet> {
                           ),
                         )
                       : const Icon(Icons.add_task_rounded),
-                  label: Text(_isSubmitting ? 'Adding...' : 'Create Task'),
+                  label: Text(
+                    _isSubmitting
+                        ? context.tr('checklist.adding')
+                        : context.tr('checklist.create_task'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: AppColors.eventPrimary,
@@ -602,7 +610,7 @@ class _ChecklistBottomNav extends StatelessWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -613,21 +621,21 @@ class _ChecklistBottomNav extends StatelessWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               active: true,
             ),
             _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -727,20 +735,7 @@ class _DashedBorderPainter extends CustomPainter {
   }
 }
 
-String _formatDate(DateTime date) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+String _formatDate(BuildContext context, DateTime date) {
+  final localeName = Localizations.localeOf(context).toLanguageTag();
+  return DateFormat.yMMMd(localeName).format(date);
 }

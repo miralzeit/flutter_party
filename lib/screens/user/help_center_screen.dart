@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/event_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -34,8 +35,10 @@ class HelpCenterScreen extends ConsumerWidget {
                           final opened = await launchUrl(uri);
                           if (!opened && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Could not start phone call.'),
+                              SnackBar(
+                                content: Text(
+                                  context.tr('common.could_not_start_phone'),
+                                ),
                               ),
                             );
                           }
@@ -98,7 +101,7 @@ class _HelpHeader extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Evergreen Events',
+              context.tr('common.app_name'),
               style: AppTextStyles.headlineMd(
                 color: AppColors.eventBlack,
               ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -135,7 +138,7 @@ class _HelpCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Need help?',
+            context.tr('help.need_help'),
             textAlign: TextAlign.center,
             style: AppTextStyles.headlineMd(
               color: AppColors.eventBlack,
@@ -143,7 +146,7 @@ class _HelpCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Our support team is available 24/7 to assist with your sustainable event needs.',
+            context.tr('help.subtitle'),
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMd(
               color: AppColors.eventMutedForeground,
@@ -156,7 +159,7 @@ class _HelpCard extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onContactSupport,
               icon: const Icon(Icons.headset_mic_rounded, size: 20),
-              label: const Text('Contact Support'),
+              label: Text(context.tr('help.contact')),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: AppColors.eventPrimary,
@@ -177,7 +180,7 @@ class _HelpCard extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: onLiveChat,
               icon: const Icon(Icons.chat_bubble_rounded, size: 19),
-              label: const Text('Live Chat'),
+              label: Text(context.tr('help.live_chat')),
               style: OutlinedButton.styleFrom(
                 backgroundColor: AppColors.eventBackground,
                 foregroundColor: AppColors.eventPrimary,
@@ -216,7 +219,7 @@ class _HelpBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -227,7 +230,7 @@ class _HelpBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -236,20 +239,22 @@ class _HelpBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (_) => ChecklistScreen(
-                      eventName: activeEvent?.eventName ?? 'Evergreen Events',
+                      eventName:
+                          activeEvent?.eventName ??
+                          context.tr('common.app_name'),
                     ),
                   ),
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               active: true,
             ),
           ],

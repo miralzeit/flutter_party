@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/event_provider.dart';
 import '../../services/event_api_service.dart';
 import '../../theme/app_colors.dart';
@@ -88,9 +90,7 @@ class _PlanYourEventScreenState extends ConsumerState<PlanYourEventScreen> {
 
     if (eventName.isEmpty || location.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an event name and location.'),
-        ),
+        SnackBar(content: Text(context.tr('plan.required_error'))),
       );
       return;
     }
@@ -230,7 +230,7 @@ class _HeadingBlock extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Plan your event',
+          context.tr('plan.title'),
           textAlign: TextAlign.center,
           style: AppTextStyles.headlineLgMobile(
             color: AppColors.eventBlack,
@@ -238,7 +238,7 @@ class _HeadingBlock extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Fill in the details below to start organizing\nyour perfect celebration.',
+          context.tr('plan.subtitle'),
           textAlign: TextAlign.center,
           style: AppTextStyles.bodyMd(
             color: AppColors.eventMutedForeground,
@@ -312,7 +312,7 @@ class _EventTypeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionBlock(
-      label: 'Select Event Type',
+      label: context.tr('plan.select_event_type'),
       child: SizedBox(
         height: 66,
         child: _EventTypeScroller(
@@ -352,6 +352,20 @@ class _EventTypeScroller extends StatelessWidget {
       },
     );
   }
+}
+
+String _eventTypeDisplayName(BuildContext context, String eventType) {
+  return switch (eventType) {
+    'Wedding' => context.tr('plan.wedding'),
+    'Engagement' => context.tr('plan.engagement'),
+    'Graduation' => context.tr('plan.graduation'),
+    'Birthday' => context.tr('plan.birthday'),
+    'Corporate' => context.tr('plan.corporate'),
+    'Baby Shower' => context.tr('plan.baby_shower'),
+    'Anniversary' => context.tr('plan.anniversary'),
+    'Other' => context.tr('plan.other'),
+    _ => eventType,
+  };
 }
 
 class _EventTypeOption {
@@ -411,7 +425,7 @@ class _EventTypeCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                option.label,
+                _eventTypeDisplayName(context, option.label),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style:
@@ -440,11 +454,11 @@ class _EventNameSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionBlock(
-      label: 'Event Name',
+      label: context.tr('plan.event_name'),
       child: _PlanningInput(
         controller: controller,
         icon: Icons.edit_rounded,
-        hint: 'E.g. Smith & Co. Wedding',
+        hint: context.tr('plan.event_name_hint'),
         textInputAction: TextInputAction.next,
       ),
     );
@@ -465,14 +479,14 @@ class _EventDateSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionBlock(
-      label: 'When will it happen?',
+      label: context.tr('plan.when'),
       child: Row(
         children: [
           Expanded(
             child: _DateInfoCard(
               icon: Icons.calendar_today_rounded,
-              label: 'DATE',
-              value: _formatEventDate(selectedDate),
+              label: context.tr('plan.date'),
+              value: _formatEventDate(context, selectedDate),
               onTap: onDateTap,
             ),
           ),
@@ -480,8 +494,8 @@ class _EventDateSection extends StatelessWidget {
           Expanded(
             child: _DateInfoCard(
               icon: Icons.timer_outlined,
-              label: 'COUNTDOWN',
-              value: _formatCountdown(countdownDays),
+              label: context.tr('plan.countdown'),
+              value: _formatCountdown(context, countdownDays),
               filled: true,
             ),
           ),
@@ -499,11 +513,11 @@ class _LocationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SectionBlock(
-      label: 'City / Location',
+      label: context.tr('plan.city_location'),
       child: _PlanningInput(
         controller: controller,
         icon: Icons.location_on_rounded,
-        hint: 'E.g. San Francisco, CA',
+        hint: context.tr('plan.city_hint'),
         textInputAction: TextInputAction.done,
       ),
     );
@@ -659,28 +673,14 @@ class _DateInfoCard extends StatelessWidget {
   }
 }
 
-String _formatEventDate(DateTime date) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+String _formatEventDate(BuildContext context, DateTime date) {
+  final localeName = Localizations.localeOf(context).toLanguageTag();
+  return DateFormat.yMMMd(localeName).format(date);
 }
 
-String _formatCountdown(int days) {
+String _formatCountdown(BuildContext context, int days) {
   if (days == 1) return '1 Day';
-  return '$days Days';
+  return context.tr('plan.days', {'count': days});
 }
 
 class _MapPreview extends StatelessWidget {
@@ -715,7 +715,7 @@ class _MapPreview extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => _openGoogleMaps(context, mapLocation),
                 icon: const Icon(Icons.map_rounded, size: 18),
-                label: const Text('View on Map'),
+                label: Text(context.tr('common.view_on_map')),
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.eventBackground,
                   foregroundColor: AppColors.eventPrimary,
@@ -766,7 +766,7 @@ class _MapPreview extends StatelessWidget {
     if (launched || !context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Could not open Google Maps.')),
+      SnackBar(content: Text(context.tr('common.could_not_open_maps'))),
     );
   }
 }
@@ -862,12 +862,12 @@ class _GetStartedButton extends StatelessWidget {
                   color: AppColors.onPrimary,
                 ),
               )
-            : const Row(
+            : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Get started'),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, size: 21),
+                  Text(context.tr('plan.get_started')),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, size: 21),
                 ],
               ),
       ),
@@ -881,7 +881,7 @@ class _FooterNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'You can change these details later in your planner.',
+      context.tr('plan.footer'),
       textAlign: TextAlign.center,
       style: AppTextStyles.labelSm(
         color: AppColors.eventMutedForeground,

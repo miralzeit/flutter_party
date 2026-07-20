@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/user_profile_provider.dart';
 import '../../services/user_profile_api_service.dart';
@@ -112,11 +113,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.tr('common.cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Deactivate'),
+              child: Text(context.tr('common.deactivate_account')),
             ),
           ],
         );
@@ -547,7 +548,7 @@ class _EditProfileBottomNav extends ConsumerWidget {
           children: [
             _BottomNavItem(
               icon: Icons.home_rounded,
-              label: 'Home',
+              label: context.tr('nav.home'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -558,7 +559,7 @@ class _EditProfileBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.chat_bubble_rounded,
-              label: 'Chat',
+              label: context.tr('nav.chat'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -567,7 +568,7 @@ class _EditProfileBottomNav extends ConsumerWidget {
             ),
             _BottomNavItem(
               icon: Icons.fact_check_rounded,
-              label: 'Checklist',
+              label: context.tr('nav.checklist'),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -578,9 +579,9 @@ class _EditProfileBottomNav extends ConsumerWidget {
                 );
               },
             ),
-            const _BottomNavItem(
+            _BottomNavItem(
               icon: Icons.person_rounded,
-              label: 'Profile',
+              label: context.tr('nav.profile'),
               active: true,
             ),
           ],
