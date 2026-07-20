@@ -11,6 +11,7 @@ import 'screens/user/edit_profile_screen.dart';
 import 'screens/user/event_flow_home_screen.dart';
 import 'screens/user/help_center_screen.dart';
 import 'screens/user/notification_settings_screen.dart';
+import 'screens/user/notifications_screen.dart';
 import 'screens/user/plan_your_event_screen.dart';
 import 'screens/user/profile_screen.dart';
 import 'screens/user/security_settings_screen.dart';
@@ -64,6 +65,7 @@ class EventProApp extends ConsumerWidget {
         '/security-settings': (_) => const SecuritySettingsScreen(),
         '/help-center': (_) => const HelpCenterScreen(),
         '/notification-settings': (_) => const NotificationSettingsScreen(),
+        '/notifications': (_) => const NotificationsScreen(),
         '/create-wishlist': (_) => const CreateWishlistScreen(),
         '/chat': (_) => const ChatScreen(),
         '/checklist': (_) => const ChecklistScreen(),

@@ -66,7 +66,7 @@ class _HeaderBar extends StatelessWidget {
         _HeaderIconButton(
           icon: Icons.notifications_none_rounded,
           semanticLabel: 'Notifications',
-          onTap: () {},
+          onTap: () => Navigator.of(context).pushNamed('/notifications'),
         ),
         const SizedBox(width: 8),
         _HeaderIconButton(

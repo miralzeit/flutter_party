@@ -265,7 +265,7 @@ class _NotificationHeader extends StatelessWidget {
             color: AppColors.eventDarkIcon,
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () => Navigator.of(context).pushNamed('/notifications'),
             icon: const Icon(Icons.notifications_none_rounded),
             color: AppColors.eventDarkIcon,
           ),
