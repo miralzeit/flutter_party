@@ -389,6 +389,7 @@ class _FakeVendorApiService extends VendorApiService {
     required int page,
     int limit = 10,
     String? location,
+    String? currencyCode,
   }) async {
     return const PaginatedVendors(
       vendors: [
@@ -500,7 +501,7 @@ class _FakeWishlistApiService extends WishlistApiService {
   SaveWishlistRequest? savedWishlist;
 
   @override
-  Future<WishlistItem> addItemByUrl(String url) async {
+  Future<WishlistItem> addItemByUrl(String url, {String? currencyCode}) async {
     addedUrl = url;
     return WishlistItem(
       url: url,

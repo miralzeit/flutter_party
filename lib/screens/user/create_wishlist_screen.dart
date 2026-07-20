@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/currency_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../services/wishlist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/currency_formatter.dart';
 import 'wedding_registry_screen.dart';
 
 const bool _skipWishlistBackend = bool.fromEnvironment(
@@ -56,7 +58,9 @@ class _CreateWishlistScreenState extends ConsumerState<CreateWishlistScreen> {
     try {
       final item = _useLocalWishlistData
           ? WishlistItem.demoFromUrl(url)
-          : await ref.read(wishlistApiServiceProvider).addItemByUrl(url);
+          : await ref
+                .read(wishlistApiServiceProvider)
+                .addItemByUrl(url, currencyCode: ref.read(currencyProvider));
 
       if (!mounted) return;
 
@@ -419,9 +423,7 @@ class _WishlistItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  item.price.isEmpty
-                      ? item.sourceDomain
-                      : '${item.price} • ${item.sourceDomain}',
+                  _formatWishlistItemMeta(context, item),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSm(
@@ -666,6 +668,24 @@ class _WishlistCard extends StatelessWidget {
       child: child,
     );
   }
+}
+
+String _formatWishlistItemMeta(BuildContext context, WishlistItem item) {
+  final price = _formatWishlistItemPrice(context, item);
+  return price == null ? item.sourceDomain : '$price • ${item.sourceDomain}';
+}
+
+String? _formatWishlistItemPrice(BuildContext context, WishlistItem item) {
+  if (item.priceAmount != null &&
+      item.priceCurrency != null &&
+      item.priceCurrency!.trim().isNotEmpty) {
+    return formatMoney(
+      Money(amount: item.priceAmount!, currencyCode: item.priceCurrency!),
+      context,
+    );
+  }
+
+  return item.price.trim().isEmpty ? null : item.price;
 }
 
 class _WishlistInput extends StatelessWidget {

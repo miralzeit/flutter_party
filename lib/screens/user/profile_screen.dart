@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/checklist_provider.dart';
+import '../../providers/currency_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/user_profile_provider.dart';
@@ -480,6 +481,7 @@ class _PreferencesCard extends ConsumerWidget {
     final languageLabel = locale.languageCode == 'ar'
         ? context.tr('profile.arabic')
         : context.tr('profile.english');
+    final currencyCode = ref.watch(currencyProvider);
 
     return _WhiteCard(
       padding: EdgeInsets.zero,
@@ -489,7 +491,7 @@ class _PreferencesCard extends ConsumerWidget {
             data: _SettingsRowData(
               icon: Icons.language_rounded,
               title: context.tr('profile.language'),
-              trailing: _LanguageTrailing(label: languageLabel),
+              trailing: _PreferenceTrailing(label: languageLabel),
               showChevron: false,
               onTap: () => _showLanguageSelector(context, ref),
             ),
@@ -499,8 +501,9 @@ class _PreferencesCard extends ConsumerWidget {
             data: _SettingsRowData(
               icon: Icons.credit_card_rounded,
               title: context.tr('profile.currency'),
-              trailing: const Text('USD'),
+              trailing: _PreferenceTrailing(label: currencyCode),
               showChevron: false,
+              onTap: () => _showCurrencySelector(context, ref),
             ),
           ),
           const Divider(height: 1, color: AppColors.eventBorder),
@@ -532,14 +535,14 @@ class _PreferencesCard extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _LanguageOption(
+                _PreferenceOption(
                   label: context.tr('profile.english'),
                   selected: currentLocale.languageCode == 'en',
                   onTap: () =>
                       _selectLanguage(context, ref, const Locale('en')),
                 ),
                 const SizedBox(height: 10),
-                _LanguageOption(
+                _PreferenceOption(
                   label: context.tr('profile.arabic'),
                   selected: currentLocale.languageCode == 'ar',
                   onTap: () =>
@@ -553,6 +556,55 @@ class _PreferencesCard extends ConsumerWidget {
     );
   }
 
+  void _showCurrencySelector(BuildContext context, WidgetRef ref) {
+    final currentCurrency = ref.read(currencyProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.eventBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final currencyCode in supportedCurrencyCodes) ...[
+                  _PreferenceOption(
+                    label: currencyCode,
+                    selected: currentCurrency == currencyCode,
+                    onTap: () => _selectCurrency(context, ref, currencyCode),
+                  ),
+                  if (currencyCode != supportedCurrencyCodes.last)
+                    const SizedBox(height: 10),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _selectCurrency(
+    BuildContext context,
+    WidgetRef ref,
+    String currencyCode,
+  ) async {
+    try {
+      await ref.read(currencyProvider.notifier).setCurrency(currencyCode);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    }
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
   Future<void> _selectLanguage(
     BuildContext context,
     WidgetRef ref,
@@ -563,8 +615,8 @@ class _PreferencesCard extends ConsumerWidget {
   }
 }
 
-class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({
+class _PreferenceOption extends StatelessWidget {
+  const _PreferenceOption({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -613,8 +665,8 @@ class _LanguageOption extends StatelessWidget {
   }
 }
 
-class _LanguageTrailing extends StatelessWidget {
-  const _LanguageTrailing({required this.label});
+class _PreferenceTrailing extends StatelessWidget {
+  const _PreferenceTrailing({required this.label});
 
   final String label;
 

@@ -39,6 +39,7 @@ class VendorApiService {
     required int page,
     int limit = 10,
     String? location,
+    String? currencyCode,
   }) async {
     final uri = _buildUri(
       queryParameters: {
@@ -46,6 +47,8 @@ class VendorApiService {
         'limit': '$limit',
         if (location != null && location.trim().isNotEmpty)
           'location': location.trim(),
+        if (currencyCode != null && currencyCode.trim().isNotEmpty)
+          'currency': currencyCode.trim().toUpperCase(),
       },
     );
 

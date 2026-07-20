@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/marketplace_vendor.dart';
 import '../../providers/checklist_provider.dart';
+import '../../providers/currency_provider.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/vendor_marketplace_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/currency_formatter.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
 import 'chat_screen.dart';
@@ -661,6 +663,7 @@ class _VendorSection extends ConsumerStatefulWidget {
 
 class _VendorSectionState extends ConsumerState<_VendorSection> {
   final List<MarketplaceVendor> _vendors = [];
+  String? _loadedCurrencyCode;
   var _page = 1;
   var _hasNextPage = false;
   var _isLoading = true;
@@ -674,6 +677,7 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
   }
 
   Future<void> _loadVendors({required bool refresh}) async {
+    final currencyCode = ref.read(currencyProvider);
     final nextPage = refresh ? 1 : _page + 1;
 
     setState(() {
@@ -692,6 +696,7 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
             page: nextPage,
             limit: _VendorSection._pageLimit,
             location: _VendorSection._location,
+            currencyCode: currencyCode,
           );
 
       if (!mounted) return;
@@ -706,6 +711,7 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
         }
         _page = result.page;
         _hasNextPage = result.hasNextPage;
+        _loadedCurrencyCode = currencyCode;
         _isLoading = false;
         _isLoadingMore = false;
         _errorMessage = null;
@@ -723,6 +729,13 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
 
   @override
   Widget build(BuildContext context) {
+    final currencyCode = ref.watch(currencyProvider);
+    if (_loadedCurrencyCode != null && _loadedCurrencyCode != currencyCode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadVendors(refresh: true);
+      });
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -772,6 +785,19 @@ class _VendorSectionState extends ConsumerState<_VendorSection> {
   }
 }
 
+String _formatVendorPrice(BuildContext context, MarketplaceVendor vendor) {
+  if (vendor.priceAmount != null &&
+      vendor.priceCurrency != null &&
+      vendor.priceCurrency!.trim().isNotEmpty) {
+    return formatMoney(
+      Money(amount: vendor.priceAmount!, currencyCode: vendor.priceCurrency!),
+      context,
+    );
+  }
+
+  return vendor.priceLevel.isEmpty ? '' : vendor.priceLevel;
+}
+
 class _VendorCard extends StatelessWidget {
   const _VendorCard({required this.vendor});
 
@@ -782,7 +808,7 @@ class _VendorCard extends StatelessWidget {
     final rating = vendor.rating == null
         ? '-'
         : vendor.rating!.toStringAsFixed(1);
-    final price = vendor.priceLevel.isEmpty ? '\$\$' : vendor.priceLevel;
+    final price = _formatVendorPrice(context, vendor);
     final description = vendor.description.isEmpty
         ? 'Event vendor available for planning and bookings.'
         : vendor.description;

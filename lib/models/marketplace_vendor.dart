@@ -4,6 +4,8 @@ class MarketplaceVendor {
     required this.name,
     required this.description,
     required this.priceLevel,
+    this.priceAmount,
+    this.priceCurrency,
     required this.rating,
     required this.imageUrl,
     required this.phone,
@@ -14,6 +16,8 @@ class MarketplaceVendor {
   final String name;
   final String description;
   final String priceLevel;
+  final double? priceAmount;
+  final String? priceCurrency;
   final double? rating;
   final String imageUrl;
   final String phone;
@@ -24,7 +28,19 @@ class MarketplaceVendor {
       id: _stringValue(json, ['id', '_id', 'vendorId']),
       name: _stringValue(json, ['name', 'businessName', 'vendorName', 'title']),
       description: _stringValue(json, ['description', 'bio', 'summary']),
-      priceLevel: _stringValue(json, ['priceLevel', 'price', 'priceRange']),
+      priceLevel: _stringValue(json, ['priceLevel', 'priceRange', 'price']),
+      priceAmount: _doubleValue(json, [
+        'amount',
+        'priceAmount',
+        'priceValue',
+        'convertedAmount',
+      ]),
+      priceCurrency: _stringValue(json, [
+        'currency',
+        'currencyCode',
+        'priceCurrency',
+        'convertedCurrency',
+      ]),
       rating: _doubleValue(json, ['rating', 'averageRating', 'stars']),
       imageUrl: _stringValue(json, [
         'imageUrl',
@@ -44,6 +60,8 @@ class MarketplaceVendor {
     String? name,
     String? description,
     String? priceLevel,
+    double? priceAmount,
+    String? priceCurrency,
     double? rating,
     String? imageUrl,
     String? phone,
@@ -54,6 +72,8 @@ class MarketplaceVendor {
       name: name ?? this.name,
       description: description ?? this.description,
       priceLevel: priceLevel ?? this.priceLevel,
+      priceAmount: priceAmount ?? this.priceAmount,
+      priceCurrency: priceCurrency ?? this.priceCurrency,
       rating: rating ?? this.rating,
       imageUrl: imageUrl ?? this.imageUrl,
       phone: phone ?? this.phone,

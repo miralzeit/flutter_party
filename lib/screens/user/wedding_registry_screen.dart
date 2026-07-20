@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../providers/currency_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../services/wishlist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/currency_formatter.dart';
 
 const bool _skipWishlistBackend = bool.fromEnvironment(
   'SKIP_WISHLIST_BACKEND',
@@ -73,7 +75,9 @@ class _WeddingRegistryScreenState extends ConsumerState<WeddingRegistryScreen> {
     try {
       final item = _useLocalWishlistData
           ? WishlistItem.demoFromUrl(url)
-          : await ref.read(wishlistApiServiceProvider).addItemByUrl(url);
+          : await ref
+                .read(wishlistApiServiceProvider)
+                .addItemByUrl(url, currencyCode: ref.read(currencyProvider));
 
       if (!mounted) return;
       setState(() {
@@ -296,6 +300,19 @@ class _SuccessBanner extends StatelessWidget {
   }
 }
 
+String? _formatRegistryItemPrice(BuildContext context, WishlistItem item) {
+  if (item.priceAmount != null &&
+      item.priceCurrency != null &&
+      item.priceCurrency!.trim().isNotEmpty) {
+    return formatMoney(
+      Money(amount: item.priceAmount!, currencyCode: item.priceCurrency!),
+      context,
+    );
+  }
+
+  return item.price.trim().isEmpty ? null : item.price;
+}
+
 class _RegistryItemCard extends StatelessWidget {
   const _RegistryItemCard({required this.item, required this.onViewStore});
 
@@ -363,7 +380,7 @@ class _RegistryItemCard extends StatelessWidget {
                     ],
                   ),
                   child: Text(
-                    item.price.isEmpty ? 'Price pending' : item.price,
+                    _formatRegistryItemPrice(context, item) ?? 'Price pending',
                     style: AppTextStyles.labelMd(
                       color: AppColors.eventBlack,
                     ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0),
@@ -778,7 +795,9 @@ const _demoRegistryItems = [
     title: 'Smart Precision Coffee Maker',
     imageUrl:
         'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80',
-    price: r'$249.00',
+    price: '',
+    priceAmount: 249.00,
+    priceCurrency: 'USD',
     sourceDomain: 'Amazon.com',
     category: 'KITCHEN ESSENTIALS',
   ),
@@ -787,7 +806,9 @@ const _demoRegistryItems = [
     title: 'Artisan Crystal Vase Set',
     imageUrl:
         'https://images.unsplash.com/photo-1612196808214-b8e1d6145a8c?auto=format&fit=crop&w=900&q=80',
-    price: r'$120.00',
+    price: '',
+    priceAmount: 120.00,
+    priceCurrency: 'USD',
     sourceDomain: 'Williams Sonoma',
     category: 'HOME DECOR',
   ),
@@ -796,7 +817,9 @@ const _demoRegistryItems = [
     title: 'Stone-Washed Linen King Set',
     imageUrl:
         'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=900&q=80',
-    price: r'$315.00',
+    price: '',
+    priceAmount: 315.00,
+    priceCurrency: 'USD',
     sourceDomain: 'Brooklinen',
     category: 'BEDROOM',
   ),

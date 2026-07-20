@@ -21,6 +21,8 @@ class WishlistItem {
     required this.title,
     required this.imageUrl,
     required this.price,
+    this.priceAmount,
+    this.priceCurrency,
     required this.sourceDomain,
     this.category = 'WISHLIST ITEM',
     this.selected = true,
@@ -30,6 +32,8 @@ class WishlistItem {
   final String title;
   final String imageUrl;
   final String price;
+  final num? priceAmount;
+  final String? priceCurrency;
   final String sourceDomain;
   final String category;
   final bool selected;
@@ -40,7 +44,19 @@ class WishlistItem {
       url: url,
       title: _stringValue(json, ['title', 'name'], fallback: 'Wishlist item'),
       imageUrl: _stringValue(json, ['image', 'imageUrl', 'thumbnail']),
-      price: _stringValue(json, ['price', 'displayPrice', 'amount']),
+      price: _stringValue(json, ['price', 'displayPrice']),
+      priceAmount: _numValue(json, [
+        'amount',
+        'priceAmount',
+        'priceValue',
+        'convertedAmount',
+      ]),
+      priceCurrency: _stringValue(json, [
+        'currency',
+        'currencyCode',
+        'priceCurrency',
+        'convertedCurrency',
+      ]),
       sourceDomain: _stringValue(json, [
         'sourceDomain',
         'store',
@@ -63,7 +79,7 @@ class WishlistItem {
       url: url,
       title: _titleFromDomain(domain),
       imageUrl: '',
-      price: 'Price pending',
+      price: '',
       sourceDomain: domain,
       category: 'WISHLIST ITEM',
     );
@@ -75,6 +91,8 @@ class WishlistItem {
       'title': title,
       'imageUrl': imageUrl,
       'price': price,
+      'amount': priceAmount,
+      'currency': priceCurrency,
       'sourceDomain': sourceDomain,
       'category': category,
       'selected': selected,
@@ -124,8 +142,12 @@ class WishlistApiService {
   final String saveEndpoint;
   final http.Client _httpClient;
 
-  Future<WishlistItem> addItemByUrl(String url) async {
-    final response = await _postJson(_buildUri(itemEndpoint), {'url': url});
+  Future<WishlistItem> addItemByUrl(String url, {String? currencyCode}) async {
+    final response = await _postJson(_buildUri(itemEndpoint), {
+      'url': url,
+      if (currencyCode != null && currencyCode.trim().isNotEmpty)
+        'currency': currencyCode.trim().toUpperCase(),
+    });
     final decoded = _decodeObject(response.body);
     final itemJson = decoded['item'] is Map
         ? Map<String, dynamic>.from(decoded['item'] as Map)
@@ -187,6 +209,21 @@ class WishlistApiService {
 String _trimTrailingSlash(String value) {
   if (value.endsWith('/')) return value.substring(0, value.length - 1);
   return value;
+}
+
+num? _numValue(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is num) return value;
+    if (value is String) {
+      final sanitized = value
+          .replaceAll(RegExp(r'[^0-9.,-]'), '')
+          .replaceAll(',', '');
+      final parsed = num.tryParse(sanitized);
+      if (parsed != null) return parsed;
+    }
+  }
+  return null;
 }
 
 String _stringValue(
