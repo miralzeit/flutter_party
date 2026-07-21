@@ -30,8 +30,9 @@ class OnboardingReviewStep extends ConsumerWidget {
     if (state.isAdditionalBusiness) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainShellScreen()),
+        (route) => false,
       );
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/admin_colors.dart';
 import '../theme/admin_text_styles.dart';
+import '../widgets/admin_menu_button.dart';
 
 /// Shared body for the sidebar destinations the spec lists in the IA but
 /// never details (Checklists, Broadcast, Settings) — kept as a plain
@@ -14,7 +15,7 @@ class AdminPlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(leading: AdminMenuButton.of(context), title: Text(title)),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

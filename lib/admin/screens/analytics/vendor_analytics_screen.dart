@@ -111,7 +111,7 @@ class VendorAnalyticsScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: AdminColors.tertiary, borderRadius: BorderRadius.circular(AdminRadius.full)),
-                    child: Text('Hot Service', style: AdminTextStyles.labelSm(color: Colors.white)),
+                    child: Text('Hot Service', style: AdminTextStyles.labelSm(color: AdminColors.tertiaryContainer)),
                   ),
                 ],
               ),

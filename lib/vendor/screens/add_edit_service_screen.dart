@@ -3,6 +3,7 @@ import '../models/business.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
+import '../widgets/field_label.dart';
 import '../widgets/photo_upload.dart';
 
 /// Screen 8 — "Add / Edit Service". The single most-reused screen in the
@@ -24,7 +25,6 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
   late final _nameCtrl = TextEditingController(text: widget.initial?.name ?? '');
   late final _descriptionCtrl = TextEditingController(text: widget.initial?.description ?? '');
   late final _priceCtrl = TextEditingController(text: widget.initial?.price?.toString() ?? '');
-  late String _category = widget.initial?.category.isNotEmpty == true ? widget.initial!.category : serviceCategories.first;
   late int _photoCount = widget.initial?.photoCount ?? 0;
   late final List<ServiceDetail> _details = [
     for (final d in widget.initial?.details ?? const <ServiceDetail>[]) ServiceDetail(label: d.label, value: d.value),
@@ -59,7 +59,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
     final service = widget.initial ?? Service(name: '');
     service
       ..name = _nameCtrl.text.trim()
-      ..category = _category
+      ..category = (widget.initial?.category ?? '')
       ..description = _descriptionCtrl.text.trim()
       ..price = double.tryParse(_priceCtrl.text.trim())
       ..photoCount = _photoCount
@@ -83,23 +83,14 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _label('Service Name'),
+                    const FieldLabel('Service Name'),
                     TextFormField(
                       controller: _nameCtrl,
                       decoration: const InputDecoration(hintText: 'Example: Bridal Makeup'),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter a service name.' : null,
                     ),
                     const SizedBox(height: 20),
-                    _label('Category'),
-                    DropdownButtonFormField<String>(
-                      initialValue: _category,
-                      items: [
-                        for (final category in serviceCategories) DropdownMenuItem(value: category, child: Text(category)),
-                      ],
-                      onChanged: (value) => setState(() => _category = value ?? _category),
-                    ),
-                    const SizedBox(height: 20),
-                    _label('Description'),
+                    const FieldLabel('Description'),
                     TextFormField(
                       controller: _descriptionCtrl,
                       minLines: 3,
@@ -107,7 +98,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                       decoration: const InputDecoration(hintText: 'Describe your service'),
                     ),
                     const SizedBox(height: 20),
-                    _label('Base Price (Optional)'),
+                    const FieldLabel('Base Price (Optional)'),
                     TextFormField(
                       controller: _priceCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -124,7 +115,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                       onAdd: () => setState(() => _photoCount += 1),
                     ),
                     const SizedBox(height: 20),
-                    _label('Additional Details'),
+                    const FieldLabel('Additional Details'),
                     if (_details.isEmpty)
                       Text('No details added yet.', style: AppTextStyles.bodyMd(color: AppColors.outline).copyWith(fontStyle: FontStyle.italic))
                     else
@@ -152,10 +143,11 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                                       ),
                                     ),
                                     IconButton(
+                                      tooltip: 'Remove detail',
                                       onPressed: () => _removeDetail(detail),
                                       icon: const Icon(Icons.close, size: 18, color: AppColors.outline),
                                       padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                                     ),
                                   ],
                                 ),
@@ -184,11 +176,6 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }
 
 /// Modal bottom sheet for adding one custom label/value [ServiceDetail] row
@@ -226,23 +213,18 @@ class _AddDetailSheetState extends State<_AddDetailSheet> {
         children: [
           Text('Add Detail', style: AppTextStyles.headlineMd()),
           const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _labelCtrl,
-                  decoration: const InputDecoration(hintText: 'e.g. Max guests, Duration...'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _valueCtrl,
-                  decoration: const InputDecoration(hintText: 'e.g. 300 people...'),
-                ),
-              ),
-            ],
+          const FieldLabel('Label'),
+          TextField(
+            controller: _labelCtrl,
+            textInputAction: TextInputAction.next,
+            decoration: const InputDecoration(hintText: 'e.g. Max guests'),
+          ),
+          const SizedBox(height: 16),
+          const FieldLabel('Value'),
+          TextField(
+            controller: _valueCtrl,
+            onSubmitted: (_) => _add(),
+            decoration: const InputDecoration(hintText: 'e.g. 300 people'),
           ),
           const SizedBox(height: 20),
           ElevatedButton(

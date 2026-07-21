@@ -19,19 +19,31 @@ class MetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .65)),
+        boxShadow: [
+          BoxShadow(color: AppColors.primary.withValues(alpha: .05), blurRadius: 18, offset: const Offset(0, 8)),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 18, color: AppColors.primary),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: AppColors.primary),
+            ),
+            const SizedBox(height: 12),
           ],
+          Text(value, style: AppTextStyles.statValue(color: AppColors.primary)),
+          const SizedBox(height: 2),
           Text(label, style: AppTextStyles.labelSm()),
-          const SizedBox(height: 4),
-          Text(value, style: AppTextStyles.statValue()),
         ],
       ),
     );

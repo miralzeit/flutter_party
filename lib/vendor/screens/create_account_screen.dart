@@ -62,7 +62,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     final isVendor = _role == UserRole.vendor;
 
     return Scaffold(
-      appBar: const AppTopBar(showActions: true),
+      appBar: const AppTopBar(),
       bottomNavigationBar: AppBottomNav(
         isLoginActive: false,
         onLoginTap: () => Navigator.of(context).maybePop(),

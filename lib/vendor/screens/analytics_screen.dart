@@ -12,10 +12,11 @@ import '../widgets/metric_card.dart';
 import 'report_review_screen.dart';
 
 /// Tab 3 — "Analytics". A professional vendor dashboard: profile views
-/// (total + month-over-month chart), WhatsApp click and favorite counters,
-/// a popular services/packages ranking, and the full reviews list with a
-/// report-review action. All numbers are mocked (see mock_business_stats.dart)
-/// since there's no backend for bookings/views/reviews yet.
+/// (total + recent trend + month-over-month chart), call/WhatsApp click and
+/// favorite counters, a popular services/packages ranking, and the full
+/// reviews list with a report-review action. All numbers are mocked (see
+/// mock_business_stats.dart) since there's no backend for bookings/views/
+/// reviews yet.
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key});
 
@@ -45,7 +46,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: business == null
                 ? Center(
                     child: Padding(
@@ -60,29 +61,35 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) => Text(text, style: AppTextStyles.labelMd());
+  /// One consistent section header for the whole screen — matches the
+  /// Dashboard's `headlineMd` section titles so the two tabs read as one app.
+  Widget _sectionTitle(String text) => Text(text, style: AppTextStyles.headlineMd());
 
   Widget _content(Business business) {
     final stats = generateBusinessStats(business);
     final popular = stats.popular.take(5).toList();
+    final totalPopularViews = stats.popular.fold<int>(0, (s, p) => s + p.views);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        _sectionTitle('Profile Views'),
         const SizedBox(height: 4),
-        Text('${stats.totalProfileViews}', style: AppTextStyles.headlineLgMobile()),
-        Text('Total profile views', style: AppTextStyles.bodyMd()),
-        const SizedBox(height: 16),
+        _sectionTitle('Overview'),
+        const SizedBox(height: 12),
+        _MetricsGrid(items: [
+          {'title': 'Profile Views', 'value': '${stats.totalProfileViews}', 'icon': Icons.remove_red_eye_outlined},
+          {'title': 'Phone Clicks', 'value': '${stats.calls}', 'icon': Icons.call_outlined},
+          {'title': 'WhatsApp Clicks', 'value': '${stats.whatsappClicks.total}', 'icon': Icons.chat_outlined},
+          {'title': 'Wishlist Saves', 'value': '${stats.favorites.total}', 'icon': Icons.favorite_border},
+          {'title': 'Reviews', 'value': '${stats.reviewsCount}', 'icon': Icons.star_outline},
+          {'title': 'Package Views', 'value': '$totalPopularViews', 'icon': Icons.inventory_2_outlined},
+        ]),
+        const SizedBox(height: 28),
+        _sectionTitle('Activity'),
+        const SizedBox(height: 4),
+        Text('Recent trends and engagement', style: AppTextStyles.bodyMd()),
+        const SizedBox(height: 12),
         _MonthlyViewsChart(monthly: stats.monthlyViews),
-        const SizedBox(height: 28),
-        _sectionTitle('WhatsApp Clicks'),
-        const SizedBox(height: 12),
-        _EngagementGrid(counter: stats.whatsappClicks),
-        const SizedBox(height: 28),
-        _sectionTitle('Favorite Count'),
-        const SizedBox(height: 12),
-        _EngagementGrid(counter: stats.favorites),
         const SizedBox(height: 28),
         _sectionTitle('Popular Services & Packages'),
         const SizedBox(height: 12),
@@ -114,16 +121,6 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           ),
         const SizedBox(height: 28),
         _sectionTitle('Reviews'),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            const Icon(Icons.star, color: AppColors.tertiary, size: 18),
-            const SizedBox(width: 6),
-            Text(stats.reviewsCount == 0 ? '—' : stats.avgRating.toStringAsFixed(1), style: AppTextStyles.labelMd()),
-            const SizedBox(width: 6),
-            Text('${stats.reviewsCount} review${stats.reviewsCount == 1 ? '' : 's'}', style: AppTextStyles.bodyMd()),
-          ],
-        ),
         const SizedBox(height: 12),
         if (stats.reviews.isEmpty)
           Text('No reviews yet.', style: AppTextStyles.bodyMd())
@@ -138,6 +135,29 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           ],
       ],
     );
+  }
+
+}
+
+class _MetricsGrid extends StatelessWidget {
+  const _MetricsGrid({required this.items});
+
+  final List<Map<String, dynamic>> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final cross = constraints.maxWidth >= 760 ? 3 : 2;
+      final itemWidth = (constraints.maxWidth - (12 * (cross - 1))) / cross;
+      return Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          for (final it in items)
+            SizedBox(width: itemWidth, child: MetricCard(label: it['title'] as String, value: it['value'] as String, icon: it['icon'] as IconData)),
+        ],
+      );
+    });
   }
 }
 
@@ -194,6 +214,7 @@ class _MonthlyViewsChart extends StatelessWidget {
           borderData: FlBorderData(show: false),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (_) => AppColors.onSurface,
               getTooltipItems: (spots) => [
                 for (final spot in spots) LineTooltipItem('${spot.y.toInt()}', AppTextStyles.labelSm(color: AppColors.onPrimary)),
               ],
@@ -215,34 +236,7 @@ class _MonthlyViewsChart extends StatelessWidget {
   }
 }
 
-class _EngagementGrid extends StatelessWidget {
-  const _EngagementGrid({required this.counter});
-
-  final EngagementCounter counter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: MetricCard(label: 'Today', value: '${counter.today}', icon: Icons.today_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'This Week', value: '${counter.thisWeek}', icon: Icons.calendar_view_week_outlined)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: MetricCard(label: 'This Month', value: '${counter.thisMonth}', icon: Icons.calendar_month_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'Total', value: '${counter.total}', icon: Icons.functions)),
-          ],
-        ),
-      ],
-    );
-  }
-}
+// Engagement grid removed — replaced by unified metrics grid in AnalyticsScreen.
 
 class _ReviewCard extends StatelessWidget {
   const _ReviewCard({required this.review, required this.reported, required this.onReport});

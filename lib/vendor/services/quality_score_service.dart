@@ -9,8 +9,7 @@ enum QualityAction { editProfile, addService, createPackage, uploadPhotos, manag
 
 /// One row of the "Business Quality" checklist — done or missing, worth a
 /// number of points, with a plain-language reason a vendor would actually
-/// care about. [searchRelevant] items also show up in AI Search
-/// Optimization with their own [matchCaption].
+/// care about.
 class ChecklistItem {
   ChecklistItem({
     required this.label,
@@ -18,8 +17,6 @@ class ChecklistItem {
     required this.points,
     required this.whyItMatters,
     required this.action,
-    this.searchRelevant = false,
-    this.matchCaption,
   });
 
   final String label;
@@ -27,8 +24,6 @@ class ChecklistItem {
   final int points;
   final String whyItMatters;
   final QualityAction action;
-  final bool searchRelevant;
-  final String? matchCaption;
 }
 
 /// The vendor's overall "Business Quality Score" — a checklist scored out
@@ -67,17 +62,6 @@ class QualityScoreResult {
   int get percentileBeatsVendors => (percentage * 0.97).round().clamp(1, 99);
 }
 
-/// AI Search Optimization — how many of the AI-matching-relevant checklist
-/// items (capacity, parking, hours, ...) are filled in, plus a mocked
-/// "you currently appear in N searches" figure.
-class AiSearchOptimization {
-  AiSearchOptimization({required this.percentage, required this.searchAppearances, required this.missing});
-
-  final int percentage;
-  final int searchAppearances;
-  final List<ChecklistItem> missing;
-}
-
 /// A single "complete this to grow" recommendation with a mocked expected
 /// impact (profile visibility / views / clicks).
 class Suggestion {
@@ -86,17 +70,6 @@ class Suggestion {
   final String title;
   final String? pointsLabel;
   final String expectedImpact;
-  final QualityAction action;
-}
-
-/// The single highest-value "customers are searching for X but can't find
-/// you" spotlight card.
-class AiInsight {
-  AiInsight({required this.searchPhrase, required this.missingLabel, required this.searchCount, required this.action});
-
-  final String searchPhrase;
-  final String missingLabel;
-  final int searchCount;
   final QualityAction action;
 }
 
@@ -155,15 +128,6 @@ QualityScoreResult computeQualityScore(Business business) {
       action: QualityAction.businessDetails,
       done: business.businessHours.trim().isNotEmpty,
       whyItMatters: 'Customers can search for vendors available on specific days.',
-      searchRelevant: true,
-      matchCaption: 'Match customers searching by availability',
-    ),
-    ChecklistItem(
-      label: 'Cover Video',
-      points: 5,
-      action: QualityAction.businessDetails,
-      done: business.hasCoverVideo,
-      whyItMatters: 'A short video builds more trust than photos alone and keeps customers on your profile longer.',
     ),
     ChecklistItem(
       label: 'FAQs',
@@ -179,8 +143,6 @@ QualityScoreResult computeQualityScore(Business business) {
         action: QualityAction.businessDetails,
         done: business.capacity != null,
         whyItMatters: "Customers search by guest count — without it, you won't appear in those results.",
-        searchRelevant: true,
-        matchCaption: 'Increase discoverability',
       ),
     if (isVenueLike)
       ChecklistItem(
@@ -189,8 +151,6 @@ QualityScoreResult computeQualityScore(Business business) {
         action: QualityAction.manageFeatures,
         done: hasFeature('parking'),
         whyItMatters: 'Customers often search for venues with parking.',
-        searchRelevant: true,
-        matchCaption: 'Match customers who need parking',
       ),
     if (isVenueLike)
       ChecklistItem(
@@ -199,18 +159,6 @@ QualityScoreResult computeQualityScore(Business business) {
         action: QualityAction.manageFeatures,
         done: hasFeature('outdoor'),
         whyItMatters: 'Needed to match outdoor wedding searches.',
-        searchRelevant: true,
-        matchCaption: 'Match outdoor wedding searches',
-      ),
-    if (isVenueLike)
-      ChecklistItem(
-        label: 'Generator',
-        points: 2,
-        action: QualityAction.manageFeatures,
-        done: hasFeature('generator'),
-        whyItMatters: 'A popular search during summer weddings, when power cuts are a concern.',
-        searchRelevant: true,
-        matchCaption: 'Match customers requesting backup electricity',
       ),
     ChecklistItem(
       label: 'Accessibility Features',
@@ -218,28 +166,10 @@ QualityScoreResult computeQualityScore(Business business) {
       action: QualityAction.manageFeatures,
       done: hasFeature('access'),
       whyItMatters: 'Helps you match customers who specifically need accessible venues.',
-      searchRelevant: true,
-      matchCaption: 'Match more customers',
     ),
   ];
 
   return QualityScoreResult(items: items);
-}
-
-AiSearchOptimization computeAiSearchOptimization(Business business, QualityScoreResult quality) {
-  final relevant = quality.items.where((item) => item.searchRelevant).toList();
-  final doneCount = relevant.where((item) => item.done).length;
-  final percentage = relevant.isEmpty ? 100 : ((doneCount / relevant.length) * 100).round();
-
-  final random = Random(business.id.hashCode ^ 0x9e3779b9);
-  final baseAppearances = 30 + random.nextInt(70);
-  final searchAppearances = (baseAppearances * (percentage / 100)).round().clamp(1, 999);
-
-  return AiSearchOptimization(
-    percentage: percentage,
-    searchAppearances: searchAppearances,
-    missing: relevant.where((item) => !item.done).toList(),
-  );
 }
 
 List<Suggestion> computeSuggestions(Business business, QualityScoreResult quality) {
@@ -272,42 +202,4 @@ List<Suggestion> computeSuggestions(Business business, QualityScoreResult qualit
   }
 
   return suggestions.take(3).toList();
-}
-
-const _defaultSearchPhrases = {
-  'Business Information': 'Trusted {category} near me',
-  'Services': 'Best {category} services',
-  'Photos': '{category} with real photos',
-  'Contact Information': '{category} that responds fast',
-  'Pricing': 'Affordable {category}',
-  'Packages': 'Affordable {category} packages',
-  'Business Hours': 'Vendors available on Sundays',
-  'Cover Video': '{category} with a video preview',
-  'FAQs': '{category} with clear details',
-  'Capacity': 'Hall for 300–400 guests',
-  'Parking Information': 'Venue with parking for a big wedding',
-  'Outdoor Area': 'Outdoor wedding venue',
-  'Generator': 'Venue with backup power',
-  'Accessibility Features': 'Wheelchair-accessible {category}',
-};
-
-/// The single most valuable missing checklist item, phrased as the kind of
-/// customer search it's currently blocking the business from appearing in.
-AiInsight? computeAiInsight(Business business, QualityScoreResult quality) {
-  if (quality.missing.isEmpty) return null;
-
-  final missingByValue = [...quality.missing]..sort((a, b) => b.points.compareTo(a.points));
-  final top = missingByValue.first;
-
-  var phrase = _defaultSearchPhrases[top.label] ?? '{category} near me';
-  if (business.category == 'Salon' && top.label == 'Packages') phrase = 'Bridal makeup under \$200';
-  phrase = phrase.replaceAll('{category}', business.category.isEmpty ? 'vendors' : business.category);
-
-  final random = Random(business.id.hashCode ^ top.label.hashCode);
-  return AiInsight(
-    searchPhrase: phrase,
-    missingLabel: top.label,
-    searchCount: 20 + random.nextInt(60),
-    action: top.action,
-  );
 }

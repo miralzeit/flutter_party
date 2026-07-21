@@ -5,6 +5,7 @@ import '../../providers/admin_providers.dart';
 import '../../theme/admin_colors.dart';
 import '../../theme/admin_text_styles.dart';
 import '../../theme/admin_theme.dart';
+import '../../widgets/field_label.dart';
 
 enum _SaveState { idle, saving, saved }
 
@@ -91,10 +92,10 @@ class _AddEditCategoryScreenState extends ConsumerState<AddEditCategoryScreen> {
                   _SectionCard(
                     title: 'Category Details',
                     children: [
-                      _label('Category Name'),
+                      const AdminFieldLabel('Category Name'),
                       TextFormField(controller: _nameCtrl, decoration: const InputDecoration(hintText: 'Example: Catering'), validator: _validateName),
                       const SizedBox(height: 16),
-                      _label('Description'),
+                      const AdminFieldLabel('Description'),
                       TextFormField(
                         controller: _descriptionCtrl,
                         minLines: 2,
@@ -102,7 +103,7 @@ class _AddEditCategoryScreenState extends ConsumerState<AddEditCategoryScreen> {
                         decoration: const InputDecoration(hintText: 'Shown as helper copy to end users'),
                       ),
                       const SizedBox(height: 16),
-                      _label('Select Icon'),
+                      const AdminFieldLabel('Select Icon'),
                       Wrap(
                         spacing: 10,
                         runSpacing: 10,
@@ -126,7 +127,7 @@ class _AddEditCategoryScreenState extends ConsumerState<AddEditCategoryScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _label('Display Order'),
+                      const AdminFieldLabel('Display Order'),
                       TextFormField(
                         controller: _orderCtrl,
                         keyboardType: TextInputType.number,
@@ -190,11 +191,6 @@ class _AddEditCategoryScreenState extends ConsumerState<AddEditCategoryScreen> {
         );
     }
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(text, style: AdminTextStyles.labelMd()),
-      );
 }
 
 class _SectionCard extends StatelessWidget {

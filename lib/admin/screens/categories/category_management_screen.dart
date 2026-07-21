@@ -6,6 +6,7 @@ import '../../theme/admin_colors.dart';
 import '../../theme/admin_text_styles.dart';
 import '../../theme/admin_theme.dart';
 import '../../widgets/admin_empty_state.dart';
+import '../../widgets/admin_menu_button.dart';
 import 'add_edit_category_screen.dart';
 
 /// Screen — "Category Management". The taxonomy shown in search filters and
@@ -29,6 +30,7 @@ class CategoryManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: AdminMenuButton.of(context),
         title: const Text('Category Management'),
         actions: [
           IconButton(
@@ -59,7 +61,7 @@ class CategoryManagementScreen extends ConsumerWidget {
                         return Container(
                           key: ValueKey(category.id),
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: AdminColors.surfaceContainerLowest,
                             borderRadius: BorderRadius.circular(AdminRadius.sm),

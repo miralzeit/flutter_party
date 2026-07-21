@@ -3,6 +3,7 @@ import '../models/business.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
+import '../widgets/field_label.dart';
 
 /// Screen — "Create / Edit Package". Bundles a business's existing
 /// [Service]s together under one name and price via a multi-select list.
@@ -79,14 +80,14 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _label('Package Name'),
+                    const FieldLabel('Package Name'),
                     TextFormField(
                       controller: _nameCtrl,
                       decoration: const InputDecoration(hintText: 'Example: Silver Wedding Package'),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter a package name.' : null,
                     ),
                     const SizedBox(height: 20),
-                    _label('Price (Optional)'),
+                    const FieldLabel('Price (Optional)'),
                     TextFormField(
                       controller: _priceCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -98,7 +99,7 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    _label('Description'),
+                    const FieldLabel('Description'),
                     TextFormField(
                       controller: _descriptionCtrl,
                       minLines: 3,
@@ -106,7 +107,7 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                       decoration: const InputDecoration(hintText: 'Describe what this package includes'),
                     ),
                     const SizedBox(height: 20),
-                    _label('Included Services'),
+                    const FieldLabel('Included Services'),
                     if (services.isEmpty)
                       Text(
                         'Add services to this business first before creating a package.',
@@ -172,10 +173,19 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                                   borderRadius: BorderRadius.circular(AppRadius.dflt),
                                   border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.4)),
                                 ),
-                                child: Text(
-                                  '🎉 Customers save ${_savings!.toStringAsFixed(0)} ILS',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.labelMd(color: AppColors.tertiary),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.savings_outlined, size: 16, color: AppColors.tertiary),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        'Customers save ${_savings!.toStringAsFixed(0)} ILS',
+                                        textAlign: TextAlign.center,
+                                        style: AppTextStyles.labelMd(color: AppColors.tertiary),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -198,9 +208,4 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }

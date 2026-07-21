@@ -40,20 +40,25 @@ class AppTextStyles {
         color: color,
       );
 
+  /// 24/700/32 — used both as the mobile-scaled [headlineLg] display
+  /// headline and as the bold (700) variant of [headlineMd] that several
+  /// reference screens apply via an explicit `font-bold` on top of
+  /// `text-headline-md` (overriding its default 600 weight), e.g.
+  /// "Dashboard" / "Weekly Analytics" section titles.
   static TextStyle headlineLgMobile({Color color = AppColors.onSurface}) =>
       _inter(fontSize: 24, weight: FontWeight.w700, height: 32, color: color);
 
   static TextStyle headlineMd({Color color = AppColors.onSurface}) => _inter(
-        fontSize: 20,
+        fontSize: 24,
         weight: FontWeight.w600,
-        height: 28,
+        height: 32,
         color: color,
       );
 
   static TextStyle bodyLg({Color color = AppColors.onSurface}) => _inter(
-        fontSize: 18,
+        fontSize: 16,
         weight: FontWeight.w400,
-        height: 28,
+        height: 24,
         color: color,
       );
 
@@ -62,9 +67,8 @@ class AppTextStyles {
 
   static TextStyle labelMd({Color color = AppColors.onSurface}) => _inter(
         fontSize: 14,
-        weight: FontWeight.w600,
+        weight: FontWeight.w500,
         height: 20,
-        letterSpacing: 0.01 * 14,
         color: color,
       );
 

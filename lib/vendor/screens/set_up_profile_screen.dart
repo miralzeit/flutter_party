@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/vendor.dart';
 import '../providers/business_providers.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import '../widgets/field_label.dart';
 import '../widgets/photo_upload.dart';
 
 /// "Edit Personal Information" — reached from Settings. First-time profile
@@ -79,13 +79,13 @@ class _SetUpProfileScreenState extends ConsumerState<SetUpProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _label('Full Name'),
+                  const FieldLabel('Full Name'),
                   TextField(
                     controller: _fullNameCtrl,
                     decoration: const InputDecoration(hintText: 'Enter your full name'),
                   ),
                   const SizedBox(height: 20),
-                  _label('Bio (Optional)'),
+                  const FieldLabel('Bio (Optional)'),
                   TextField(
                     controller: _bioCtrl,
                     minLines: 2,
@@ -93,28 +93,28 @@ class _SetUpProfileScreenState extends ConsumerState<SetUpProfileScreen> {
                     decoration: const InputDecoration(hintText: 'Tell customers a bit about yourself'),
                   ),
                   const SizedBox(height: 20),
-                  _label('Email'),
+                  const FieldLabel('Email'),
                   TextField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(hintText: 'you@example.com'),
                   ),
                   const SizedBox(height: 20),
-                  _label('Phone Number'),
+                  const FieldLabel('Phone Number'),
                   TextField(
                     controller: _phoneCtrl,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(hintText: '059xxxxxxx'),
                   ),
                   const SizedBox(height: 20),
-                  _label('WhatsApp'),
+                  const FieldLabel('WhatsApp'),
                   TextField(
                     controller: _whatsappCtrl,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(hintText: '059xxxxxxx'),
                   ),
                   const SizedBox(height: 20),
-                  _label('City'),
+                  const FieldLabel('City'),
                   TextField(
                     controller: _cityCtrl,
                     decoration: const InputDecoration(hintText: 'Bethlehem'),
@@ -133,9 +133,4 @@ class _SetUpProfileScreenState extends ConsumerState<SetUpProfileScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }

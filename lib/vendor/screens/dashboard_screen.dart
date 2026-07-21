@@ -8,27 +8,25 @@ import '../services/quality_score_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
-import '../widgets/ai_insight_card.dart';
-import '../widgets/ai_search_optimization_card.dart';
 import '../widgets/business_switcher_sheet.dart';
-import '../widgets/metric_card.dart';
 import '../widgets/notifications_timeline.dart';
 import '../widgets/quality_score_card.dart';
-import '../widgets/quick_action_grid.dart';
 import '../widgets/status_pill.dart';
-import '../widgets/suggestions_section.dart';
 import 'add_business_screen.dart';
 import 'add_edit_service_screen.dart';
 import 'business_details_screen.dart';
 import 'create_package_screen.dart';
+import 'listing_preview_screen.dart';
 import 'manage_features_screen.dart';
 import 'manage_photos_screen.dart';
 import 'shell/business_flow.dart';
 
-/// Tab 1 — "Dashboard". Leads with the Business Quality Score and AI search
-/// insights (the strongest incentive for a vendor to keep their profile
-/// complete), then the usual glanceable stats: headline profile-views,
-/// quick-overview metric grid, competitor comparison, and quick actions.
+/// Tab 1 — "Dashboard". A status card (business name, verification badge,
+/// profile completion, primary actions) leads, then the Business Quality
+/// Score checklist, smart suggestions, a market/competitor comparison, and
+/// quick actions. All performance analysis (views, engagement, ratings,
+/// reviews) lives exclusively in the Analytics tab — nothing here
+/// duplicates it.
 /// Recent-activity notifications live behind the AppBar's bell icon rather
 /// than taking up scroll space.
 class DashboardScreen extends ConsumerWidget {
@@ -80,6 +78,10 @@ class DashboardScreen extends ConsumerWidget {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => BusinessDetailsScreen(business: business))).then((_) => _refresh(ref));
   }
 
+  void _previewListing(BuildContext context, Business business) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListingPreviewScreen(business: business)));
+  }
+
   void _showNotifications(BuildContext context, BusinessStats stats) {
     showModalBottomSheet<void>(
       context: context,
@@ -127,27 +129,6 @@ class DashboardScreen extends ConsumerWidget {
     }
   }
 
-  /// Your business plus a few mock nearby competitors, ranked by rating.
-  List<({String name, double avgRating, int reviewsCount, bool isYou})> _rankedCompetitors(
-    Business business,
-    BusinessStats stats,
-  ) {
-    final rows = [
-      (name: business.name, avgRating: stats.avgRating, reviewsCount: stats.reviewsCount, isYou: true),
-      for (final competitor in generateCompetitors(business))
-        (name: competitor.name, avgRating: competitor.avgRating, reviewsCount: competitor.reviewsCount, isYou: false),
-    ];
-    rows.sort((a, b) => b.avgRating.compareTo(a.avgRating));
-    return rows;
-  }
-
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vendor = ref.watch(vendorProvider);
@@ -179,10 +160,14 @@ class DashboardScreen extends ConsumerWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: business == null || stats == null
                 ? _noBusiness(context, ref)
-                : _content(context, ref, vendor, business, stats),
+                : RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: () async => _refresh(ref),
+                    child: _content(context, ref, vendor, business),
+                  ),
           ),
         ),
       ),
@@ -210,144 +195,311 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _content(BuildContext context, WidgetRef ref, Vendor? vendor, Business business, BusinessStats stats) {
+  Widget _content(BuildContext context, WidgetRef ref, Vendor? vendor, Business business) {
     final quality = computeQualityScore(business);
-    final aiSearch = computeAiSearchOptimization(business, quality);
-    final aiInsight = computeAiInsight(business, quality);
-    final suggestions = computeSuggestions(business, quality);
-    final nameParts = (vendor?.fullName ?? '').trim().split(' ');
-    final firstName = nameParts.isNotEmpty && nameParts.first.isNotEmpty ? nameParts.first : 'there';
 
     void completeItem(ChecklistItem item) => _performAction(context, ref, business, item.action);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        Text('${_greeting()}, $firstName', style: AppTextStyles.headlineLgMobile()),
+        _StatusCard(
+          business: business,
+          completionPercent: quality.percentage,
+          onSwitchBusiness: () => BusinessSwitcherSheet.show(context),
+          onEditInfo: () => _editProfile(context, ref, business),
+          onPreview: () => _previewListing(context, business),
+        ),
+        const SizedBox(height: 28),
+        const _DashboardSectionHeader(
+          title: 'Profile health',
+          subtitle: 'A stronger profile helps more customers discover and trust you.',
+        ),
         const SizedBox(height: 12),
-        InkWell(
-          onTap: () => BusinessSwitcherSheet.show(context),
-          borderRadius: BorderRadius.circular(AppRadius.dflt),
+        QualityScoreHeaderCard(result: quality),
+        const SizedBox(height: 16),
+        Text('Recommended next steps', style: AppTextStyles.labelMd()),
+        const SizedBox(height: 12),
+        QualityChecklist(result: quality, onComplete: completeItem),
+        const SizedBox(height: 24),
+        // Prominent "Add Features" call-to-action
+        _AddFeaturesCTA(onTap: () => _manageFeatures(context, ref, business)),
+      ],
+    );
+  }
+}
+
+/// The Dashboard's top "status card" — business name, an Active & Verified
+/// badge, a Profile Completion progress bar, and a compact edit action.
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({
+    required this.business,
+    required this.completionPercent,
+    required this.onSwitchBusiness,
+    required this.onEditInfo,
+    required this.onPreview,
+  });
+
+  final Business business;
+  final int completionPercent;
+  final VoidCallback onSwitchBusiness;
+  final VoidCallback onEditInfo;
+  final VoidCallback onPreview;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.margin),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .3)),
+        boxShadow: [
+          BoxShadow(color: AppColors.onSurface.withValues(alpha: .04), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: onSwitchBusiness,
+                  borderRadius: BorderRadius.circular(AppRadius.dflt),
+                  child: Row(
+                    children: [
+                      Flexible(child: Text(business.name, style: AppTextStyles.headlineMd(color: AppColors.primary))),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.unfold_more_rounded, size: 20, color: AppColors.onSurfaceVariant),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _CompactIconButton(icon: Icons.visibility_outlined, tooltip: 'Preview listing', onPressed: onPreview),
+              const SizedBox(width: 8),
+              _CompactEditButton(onPressed: onEditInfo),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              StatusPill(status: business.status),
+              const SizedBox(width: 8),
+              if (business.status == BusinessStatus.active) const _PendingBadge(),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.gutter),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Profile Completion', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+              Text('$completionPercent%', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            child: LinearProgressIndicator(
+              value: completionPercent / 100,
+              minHeight: 10,
+              backgroundColor: AppColors.surfaceContainerHigh,
+              valueColor: const AlwaysStoppedAnimation(AppColors.onTertiaryContainer),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact "Edit Your Information" button placed inline in the status card.
+class _CompactEditButton extends StatelessWidget {
+  const _CompactEditButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primaryContainer.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(AppRadius.dflt),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.dflt),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(child: Text(business.name, style: AppTextStyles.headlineMd())),
-                const Icon(Icons.expand_more, color: AppColors.outline),
+                const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Text('Edit Info', style: AppTextStyles.labelSm(color: AppColors.primary)),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        StatusPill(status: business.status),
-        const SizedBox(height: 28),
-        QualityScoreHeaderCard(result: quality),
-        const SizedBox(height: 20),
-        Text('Complete Your Profile', style: AppTextStyles.labelMd()),
-        const SizedBox(height: 12),
-        QualityChecklist(result: quality, onComplete: completeItem),
-        const SizedBox(height: 12),
-        AiSearchOptimizationCard(optimization: aiSearch),
-        if (aiInsight != null) ...[
-          const SizedBox(height: 16),
-          AiInsightCard(insight: aiInsight, onCompleteNow: () => _performAction(context, ref, business, aiInsight.action)),
+      ),
+    );
+  }
+}
+
+/// Compact square icon-only button used in the status card header (e.g.
+/// Preview), styled to match [_CompactEditButton].
+class _CompactIconButton extends StatelessWidget {
+  const _CompactIconButton({required this.icon, required this.tooltip, required this.onPressed});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primaryContainer.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(AppRadius.dflt),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.dflt),
+        child: Tooltip(
+          message: tooltip,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Icon(icon, size: 16, color: AppColors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingBadge extends StatelessWidget {
+  const _PendingBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.hourglass_top, size: 14, color: AppColors.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text('Pending Verification', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
         ],
-        if (suggestions.isNotEmpty) ...[
-          const SizedBox(height: 28),
-          Text('Smart Suggestions', style: AppTextStyles.labelMd()),
-          const SizedBox(height: 12),
-          SuggestionsSection(
-            suggestions: suggestions,
-            onTap: (suggestion) => _performAction(context, ref, business, suggestion.action),
+      ),
+    );
+  }
+}
+
+/// Prominent "Add Features" call-to-action card encouraging vendors to
+/// add more details for better search visibility.
+class _AddFeaturesCTA extends StatelessWidget {
+  const _AddFeaturesCTA({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary,
+            AppColors.primaryContainer.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
-        const SizedBox(height: 28),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          child: Row(
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              const Icon(Icons.visibility, size: 32, color: AppColors.onPrimaryContainer),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(Icons.tune_rounded, color: Colors.white, size: 28),
+              ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${stats.totalProfileViews}', style: AppTextStyles.headlineLg(color: AppColors.onPrimaryContainer)),
-                  Text('Profile views (last 90 days)', style: AppTextStyles.bodyMd(color: AppColors.onPrimaryContainer)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add Features',
+                      style: AppTextStyles.headlineMd(color: AppColors.onPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Stand out from the competition',
+                      style: AppTextStyles.labelSm(color: AppColors.onPrimary.withValues(alpha: 0.85)),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 28),
-        Text('Quick Overview', style: AppTextStyles.labelMd()),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: MetricCard(label: 'Services', value: '${business.services.length}', icon: Icons.room_service_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'Photos', value: '${business.photoCount}', icon: Icons.photo_library_outlined)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: MetricCard(label: 'Reviews', value: '${stats.reviewsCount}', icon: Icons.star_outline)),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'Calls', value: '${stats.calls}', icon: Icons.call_outlined)),
-          ],
-        ),
-        const SizedBox(height: 28),
-        Text('Competitor Comparison', style: AppTextStyles.labelMd()),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(AppRadius.md),
+          const SizedBox(height: 16),
+          Text(
+            'Businesses with complete profiles and detailed features appear higher in searches and get more customer inquiries. Add your unique offerings to improve visibility.',
+            style: AppTextStyles.bodyMd(color: AppColors.onPrimary.withValues(alpha: 0.9)),
           ),
-          child: Column(
-            children: [
-              for (final row in _rankedCompetitors(business, stats))
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          row.isYou ? 'You (${business.name})' : row.name,
-                          style: AppTextStyles.bodyMd(color: row.isYou ? AppColors.primary : AppColors.onSurface),
-                        ),
-                      ),
-                      const Icon(Icons.star, size: 16, color: AppColors.tertiary),
-                      const SizedBox(width: 4),
-                      Text(row.avgRating.toStringAsFixed(1), style: AppTextStyles.labelMd()),
-                      const SizedBox(width: 6),
-                      Text('(${row.reviewsCount})', style: AppTextStyles.labelSm()),
-                    ],
-                  ),
-                ),
-            ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+              label: Text('Manage Features', style: AppTextStyles.labelMd(color: AppColors.primary)),
+            ),
           ),
-        ),
-        const SizedBox(height: 28),
-        Text('Quick Actions', style: AppTextStyles.labelMd()),
-        const SizedBox(height: 12),
-        QuickActionGrid(
-          actions: [
-            QuickAction(icon: Icons.add, label: 'Add Service', onTap: () => _addService(context, ref, business)),
-            QuickAction(icon: Icons.add_photo_alternate_outlined, label: 'Upload Photos', onTap: () => _addPhotos(context, ref, business)),
-            QuickAction(icon: Icons.card_giftcard_outlined, label: 'Create Package', onTap: () => _createPackage(context, ref, business)),
-            QuickAction(icon: Icons.edit_outlined, label: 'Edit Profile', onTap: () => _editProfile(context, ref, business)),
-            QuickAction(icon: Icons.schedule_outlined, label: 'Business Hours', onTap: () => _businessDetails(context, ref, business)),
-            QuickAction(icon: Icons.checklist_outlined, label: 'Manage Features', onTap: () => _manageFeatures(context, ref, business)),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _DashboardSectionHeader extends StatelessWidget {
+  const _DashboardSectionHeader({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTextStyles.headlineMd()),
+          const SizedBox(height: 4),
+          Text(subtitle, style: AppTextStyles.bodyMd()),
+        ],
+      );
 }

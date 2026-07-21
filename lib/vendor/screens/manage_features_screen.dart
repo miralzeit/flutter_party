@@ -57,10 +57,12 @@ class _ManageFeaturesScreenState extends State<ManageFeaturesScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _addFeature,
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
-                        child: const Text('Add'),
+                      Flexible(
+                        child: ElevatedButton(
+                          onPressed: _addFeature,
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer),
+                          child: const Text('Add'),
+                        ),
                       ),
                     ],
                   ),

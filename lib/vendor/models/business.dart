@@ -94,7 +94,6 @@ class Business {
     this.isPaused = false,
     this.businessHours = '',
     this.capacity,
-    this.hasCoverVideo = false,
     List<Service>? services,
     List<Package>? packages,
     List<String>? features,
@@ -123,7 +122,6 @@ class Business {
   String businessHours;
   /// Guest capacity, mainly relevant for venues (halls, catering).
   int? capacity;
-  bool hasCoverVideo;
   List<Service> services;
   List<Package> packages;
   List<String> features;

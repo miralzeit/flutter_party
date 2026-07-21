@@ -6,6 +6,7 @@ import '../../theme/admin_colors.dart';
 import '../../theme/admin_text_styles.dart';
 import '../../theme/admin_theme.dart';
 import '../../widgets/admin_empty_state.dart';
+import '../../widgets/admin_menu_button.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/report_reason_chip.dart';
 
@@ -107,7 +108,7 @@ class _ReviewModerationScreenState extends ConsumerState<ReviewModerationScreen>
     final hasMore = _visibleCount < reviews.length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Review Moderation')),
+      appBar: AppBar(leading: AdminMenuButton.of(context), title: const Text('Review Moderation')),
       body: Padding(
         padding: const EdgeInsets.all(AdminSpacing.margin),
         child: Column(
@@ -188,7 +189,7 @@ class _ReviewCard extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    Text(review.reviewerName, style: AdminTextStyles.labelMd()),
+                    Flexible(child: Text(review.reviewerName, style: AdminTextStyles.labelMd(), maxLines: 1, overflow: TextOverflow.ellipsis)),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -198,7 +199,7 @@ class _ReviewCard extends StatelessWidget {
                       ),
                       child: Text(
                         review.reviewerType.label,
-                        style: AdminTextStyles.labelSm(color: review.reviewerType == ReviewerType.verifiedGuest ? AdminColors.tertiary : AdminColors.onSurfaceVariant),
+                        style: AdminTextStyles.labelSm(color: review.reviewerType == ReviewerType.verifiedGuest ? AdminColors.tertiaryText : AdminColors.onSurfaceVariant),
                       ),
                     ),
                   ],

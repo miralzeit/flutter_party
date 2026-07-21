@@ -172,7 +172,7 @@ class _ServicesPackagesScreenState extends ConsumerState<ServicesPackagesScreen>
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: business == null ? _noBusiness() : _content(business),
           ),
         ),
@@ -280,7 +280,7 @@ class _ServicesPackagesScreenState extends ConsumerState<ServicesPackagesScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'No services yet — add your first one to start getting bookings.',
+              'No services yet — add your first one to start attracting customers.',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyLg(),
             ),

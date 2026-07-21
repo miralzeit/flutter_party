@@ -17,19 +17,26 @@ class QualityScoreHeaderCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryContainer],
+        ),
         borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(color: AppColors.primary.withValues(alpha: .22), blurRadius: 24, offset: const Offset(0, 12)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome, color: AppColors.primary, size: 18),
+              const Icon(Icons.auto_awesome_rounded, color: AppColors.onPrimary, size: 18),
               const SizedBox(width: 8),
-              Text('Business Quality Score', style: AppTextStyles.labelMd()),
+              Text('Business Quality Score', style: AppTextStyles.labelMd(color: AppColors.onPrimary)),
             ],
           ),
           const SizedBox(height: 14),
@@ -37,23 +44,23 @@ class QualityScoreHeaderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('$percentage', style: AppTextStyles.displayLg(color: AppColors.primary)),
-              Text(' / 100', style: AppTextStyles.headlineMd(color: AppColors.outline)),
+              Text('$percentage', style: AppTextStyles.displayLg(color: AppColors.onPrimary)),
+              Text(' / 100', style: AppTextStyles.headlineMd(color: AppColors.onPrimary.withValues(alpha: .7))),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               for (var i = 0; i < 5; i++)
-                Icon(i < result.starCount ? Icons.star : Icons.star_border, color: AppColors.tertiary, size: 16),
+                Icon(i < result.starCount ? Icons.star : Icons.star_border, color: AppColors.ratingGold, size: 16),
               const SizedBox(width: 8),
-              Text(result.tierLabel, style: AppTextStyles.labelMd()),
+              Text(result.tierLabel, style: AppTextStyles.labelMd(color: AppColors.onPrimary)),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             'More complete than ${result.percentileBeatsVendors}% of vendors.',
-            style: AppTextStyles.bodyMd(),
+            style: AppTextStyles.bodyMd(color: AppColors.onPrimary.withValues(alpha: .85)),
           ),
           const SizedBox(height: 12),
           ClipRRect(
@@ -61,8 +68,8 @@ class QualityScoreHeaderCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: percentage / 100,
               minHeight: 6,
-              backgroundColor: AppColors.surfaceContainerHighest,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              backgroundColor: Colors.white.withValues(alpha: .2),
+              valueColor: const AlwaysStoppedAnimation(AppColors.ratingGold),
             ),
           ),
         ],
@@ -115,37 +122,48 @@ class QualityChecklist extends StatelessWidget {
   Widget _missingRow(ChecklistItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border(left: BorderSide(color: Colors.amber.shade600, width: 3)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: InkWell(
         onTap: () => onComplete(item),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        // A leading gold accent bar sized to the row height (a left-only
+        // Border can't coexist with a borderRadius, so it's a strip instead).
+        child: IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(width: 2),
+              Container(width: 3, color: AppColors.ratingGold),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: Text(item.label, style: AppTextStyles.labelMd())),
-                        Text('+${item.points}', style: AppTextStyles.labelSm(color: AppColors.tertiary)),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(item.whyItMatters, style: AppTextStyles.labelSm()),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: Text(item.label, style: AppTextStyles.labelMd())),
+                                Text('+${item.points}', style: AppTextStyles.labelSm(color: AppColors.tertiary)),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(item.whyItMatters, style: AppTextStyles.labelSm()),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right, size: 18, color: AppColors.outline),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.outline),
             ],
           ),
         ),

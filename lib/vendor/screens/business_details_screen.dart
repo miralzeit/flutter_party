@@ -3,11 +3,11 @@ import '../models/business.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_theme.dart';
+import '../widgets/field_label.dart';
 
 /// Screen — "Business Details". Edits the profile-quality fields that don't
-/// have a home elsewhere yet: opening hours, guest capacity, a cover video
-/// flag, and a simple FAQ list. Mutates [business] in place, same pattern as
-/// ManageFeaturesScreen.
+/// have a home elsewhere yet: opening hours, guest capacity, and a simple FAQ
+/// list. Mutates [business] in place, same pattern as ManageFeaturesScreen.
 class BusinessDetailsScreen extends StatefulWidget {
   const BusinessDetailsScreen({super.key, required this.business});
 
@@ -34,8 +34,6 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       ..capacity = int.tryParse(_capacityCtrl.text.trim());
     Navigator.of(context).pop();
   }
-
-  void _toggleCoverVideo() => setState(() => widget.business.hasCoverVideo = !widget.business.hasCoverVideo);
 
   Future<void> _addFaq() async {
     final questionCtrl = TextEditingController();
@@ -81,51 +79,22 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
               children: [
-                _label('Business Hours'),
+                const FieldLabel('Business Hours'),
                 TextField(
                   controller: _hoursCtrl,
                   decoration: const InputDecoration(hintText: 'Example: Mon–Sat, 9am–9pm'),
                 ),
                 const SizedBox(height: 20),
-                _label('Capacity (Guests)'),
+                const FieldLabel('Capacity (Guests)'),
                 TextField(
                   controller: _capacityCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(hintText: 'Example: 400'),
                 ),
-                const SizedBox(height: 20),
-                _label('Cover Video'),
-                InkWell(
-                  onTap: _toggleCoverVideo,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.outlineVariant, width: 2),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          widget.business.hasCoverVideo ? Icons.check_circle : Icons.videocam_outlined,
-                          color: widget.business.hasCoverVideo ? AppColors.tertiary : AppColors.primary,
-                          size: 32,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          widget.business.hasCoverVideo ? 'Cover video added' : 'Add a Cover Video',
-                          style: AppTextStyles.labelMd(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    Expanded(child: _label('FAQs')),
+                    const Expanded(child: FieldLabel('FAQs')),
                     TextButton.icon(
                       onPressed: _addFaq,
                       icon: const Icon(Icons.add, size: 18),
@@ -177,9 +146,4 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       ),
     );
   }
-
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
-        child: Text(text, style: AppTextStyles.labelMd()),
-      );
 }
