@@ -5,10 +5,11 @@ import '../theme/app_theme.dart';
 
 /// One tappable card in a [QuickActionGrid].
 class QuickAction {
-  QuickAction({required this.icon, required this.label, required this.onTap});
+  QuickAction({required this.icon, required this.label, this.subtitle, required this.onTap});
 
   final IconData icon;
   final String label;
+  final String? subtitle;
   final VoidCallback onTap;
 }
 
@@ -52,38 +53,63 @@ class _QuickActionTileState extends State<_QuickActionTile> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 160),
-        scale: _hovered ? 1.02 : 1,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: widget.action.onTap,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _hovered ? AppColors.primaryContainer.withValues(alpha: .14) : AppColors.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(color: _hovered ? AppColors.primary.withValues(alpha: .45) : AppColors.outlineVariant.withValues(alpha: .65)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(widget.action.icon, color: AppColors.primary, size: 24),
-                  const SizedBox(height: 10),
-                  Text(widget.action.label, style: AppTextStyles.labelMd()),
-                ],
+    // Avoid attaching a MouseRegion when this tile has no layout size —
+    // on web this can trigger "Cannot hit test a render box with no size".
+    return LayoutBuilder(builder: (context, constraints) {
+      final hasSize = constraints.maxWidth > 0 && constraints.maxHeight > 0;
+
+      Widget tile = ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 160),
+          scale: _hovered ? 1.02 : 1,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.action.onTap,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _hovered ? AppColors.primaryContainer.withValues(alpha: .14) : AppColors.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: _hovered ? AppColors.primary.withValues(alpha: .45) : AppColors.outlineVariant.withValues(alpha: .65)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(widget.action.icon, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(widget.action.label, style: AppTextStyles.labelMd()),
+                          if (widget.action.subtitle != null) ...[
+                            const SizedBox(height: 6),
+                            Text(widget.action.subtitle!, style: AppTextStyles.bodyMd()),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+
+      if (!hasSize) return tile;
+
+      return MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: tile,
+      );
+    });
   }
 }

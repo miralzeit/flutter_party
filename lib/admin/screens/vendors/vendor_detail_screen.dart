@@ -62,7 +62,10 @@ class VendorDetailScreen extends ConsumerWidget {
     }
 
     if (vendor == null) {
-      return const Scaffold(body: Center(child: Text('This vendor no longer exists.')));
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('This vendor no longer exists.')),
+      );
     }
 
     return Scaffold(

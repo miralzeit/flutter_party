@@ -53,19 +53,26 @@ class AdminStatCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 if (flagged)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(AdminRadius.full)),
-                    child: Text(flagLabel!, style: AdminTextStyles.labelSm(color: Colors.white)),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(AdminRadius.full)),
+                      child: Text(
+                        flagLabel!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AdminTextStyles.labelSm(color: Colors.white),
+                      ),
+                    ),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
+            const Spacer(),
             Text(value, style: AdminTextStyles.statValue()),
             const SizedBox(height: 4),
-            Text(label, style: AdminTextStyles.labelMd()),
+            Text(label, style: AdminTextStyles.labelMd(), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
-            Text(subtitle, style: AdminTextStyles.bodyMd()),
+            Text(subtitle, style: AdminTextStyles.bodyMd(), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

@@ -52,7 +52,7 @@ class QualityScoreHeaderCard extends StatelessWidget {
           Row(
             children: [
               for (var i = 0; i < 5; i++)
-                Icon(i < result.starCount ? Icons.star : Icons.star_border, color: const Color(0xFFFFD166), size: 16),
+                Icon(i < result.starCount ? Icons.star : Icons.star_border, color: AppColors.ratingGold, size: 16),
               const SizedBox(width: 8),
               Text(result.tierLabel, style: AppTextStyles.labelMd(color: AppColors.onPrimary)),
             ],
@@ -69,7 +69,7 @@ class QualityScoreHeaderCard extends StatelessWidget {
               value: percentage / 100,
               minHeight: 6,
               backgroundColor: Colors.white.withValues(alpha: .2),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFFFFD166)),
+              valueColor: const AlwaysStoppedAnimation(AppColors.ratingGold),
             ),
           ),
         ],
@@ -122,37 +122,48 @@ class QualityChecklist extends StatelessWidget {
   Widget _missingRow(ChecklistItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border(left: BorderSide(color: Colors.amber.shade600, width: 3)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: InkWell(
         onTap: () => onComplete(item),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        // A leading gold accent bar sized to the row height (a left-only
+        // Border can't coexist with a borderRadius, so it's a strip instead).
+        child: IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(width: 2),
+              Container(width: 3, color: AppColors.ratingGold),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: Text(item.label, style: AppTextStyles.labelMd())),
-                        Text('+${item.points}', style: AppTextStyles.labelSm(color: AppColors.tertiary)),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(item.whyItMatters, style: AppTextStyles.labelSm()),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: Text(item.label, style: AppTextStyles.labelMd())),
+                                Text('+${item.points}', style: AppTextStyles.labelSm(color: AppColors.tertiary)),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(item.whyItMatters, style: AppTextStyles.labelSm()),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right, size: 18, color: AppColors.outline),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.outline),
             ],
           ),
         ),

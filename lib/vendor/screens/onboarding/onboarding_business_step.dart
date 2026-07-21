@@ -37,7 +37,6 @@ class _OnboardingBusinessStepState extends ConsumerState<OnboardingBusinessStep>
             child: BusinessFormFields(
               key: _fieldsKey,
               initial: state.business,
-              defaultWhatsapp: state.vendor.whatsapp,
             ),
           ),
         ),

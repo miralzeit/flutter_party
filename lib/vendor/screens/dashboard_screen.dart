@@ -11,13 +11,12 @@ import '../theme/app_theme.dart';
 import '../widgets/business_switcher_sheet.dart';
 import '../widgets/notifications_timeline.dart';
 import '../widgets/quality_score_card.dart';
-import '../widgets/quick_action_grid.dart';
 import '../widgets/status_pill.dart';
-import '../widgets/suggestions_section.dart';
 import 'add_business_screen.dart';
 import 'add_edit_service_screen.dart';
 import 'business_details_screen.dart';
 import 'create_package_screen.dart';
+import 'listing_preview_screen.dart';
 import 'manage_features_screen.dart';
 import 'manage_photos_screen.dart';
 import 'shell/business_flow.dart';
@@ -79,6 +78,10 @@ class DashboardScreen extends ConsumerWidget {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => BusinessDetailsScreen(business: business))).then((_) => _refresh(ref));
   }
 
+  void _previewListing(BuildContext context, Business business) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListingPreviewScreen(business: business)));
+  }
+
   void _showNotifications(BuildContext context, BusinessStats stats) {
     showModalBottomSheet<void>(
       context: context,
@@ -126,10 +129,6 @@ class DashboardScreen extends ConsumerWidget {
     }
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$feature is coming soon.')));
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vendor = ref.watch(vendorProvider);
@@ -167,7 +166,7 @@ class DashboardScreen extends ConsumerWidget {
                 : RefreshIndicator(
                     color: AppColors.primary,
                     onRefresh: () async => _refresh(ref),
-                    child: _content(context, ref, vendor, business, stats),
+                    child: _content(context, ref, vendor, business),
                   ),
           ),
         ),
@@ -196,9 +195,8 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _content(BuildContext context, WidgetRef ref, Vendor? vendor, Business business, BusinessStats stats) {
+  Widget _content(BuildContext context, WidgetRef ref, Vendor? vendor, Business business) {
     final quality = computeQualityScore(business);
-    final suggestions = computeSuggestions(business, quality);
 
     void completeItem(ChecklistItem item) => _performAction(context, ref, business, item.action);
 
@@ -209,8 +207,8 @@ class DashboardScreen extends ConsumerWidget {
           business: business,
           completionPercent: quality.percentage,
           onSwitchBusiness: () => BusinessSwitcherSheet.show(context),
-          onNewBookingInquiry: () => _showComingSoon(context, 'Booking inquiries'),
-          onUpdateListing: () => _editProfile(context, ref, business),
+          onEditInfo: () => _editProfile(context, ref, business),
+          onPreview: () => _previewListing(context, business),
         ),
         const SizedBox(height: 28),
         const _DashboardSectionHeader(
@@ -223,206 +221,30 @@ class DashboardScreen extends ConsumerWidget {
         Text('Recommended next steps', style: AppTextStyles.labelMd()),
         const SizedBox(height: 12),
         QualityChecklist(result: quality, onComplete: completeItem),
-        if (suggestions.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          const _DashboardSectionHeader(
-            title: 'Smart suggestions',
-            subtitle: 'High-impact actions tailored to your profile.',
-          ),
-          const SizedBox(height: 12),
-          SuggestionsSection(
-            suggestions: suggestions,
-            onTap: (suggestion) => _performAction(context, ref, business, suggestion.action),
-          ),
-        ],
-        const SizedBox(height: 28),
-        const _DashboardSectionHeader(
-          title: 'Market comparison',
-          subtitle: 'See how your offer compares with nearby businesses.',
-        ),
-        const SizedBox(height: 4),
-        Text('See how you stack up against nearby vendors — pricing, services and amenities.', style: AppTextStyles.bodyMd()),
-        const SizedBox(height: 12),
-        Column(
-          children: [
-            for (final row in _rankedCompetitors(business, stats)) _competitorCard(row, business),
-          ],
-        ),
-        const SizedBox(height: 28),
-        const _DashboardSectionHeader(
-          title: 'Manage your business',
-          subtitle: 'Keep your catalogue, photos and details current.',
-        ),
-        const SizedBox(height: 12),
-        QuickActionGrid(
-          actions: [
-            QuickAction(icon: Icons.add, label: 'Add Service', onTap: () => _addService(context, ref, business)),
-            QuickAction(icon: Icons.add_photo_alternate_outlined, label: 'Upload Photos', onTap: () => _addPhotos(context, ref, business)),
-            QuickAction(icon: Icons.card_giftcard_outlined, label: 'Create Package', onTap: () => _createPackage(context, ref, business)),
-            QuickAction(icon: Icons.edit_outlined, label: 'Edit Profile', onTap: () => _editProfile(context, ref, business)),
-            QuickAction(icon: Icons.schedule_outlined, label: 'Business Hours', onTap: () => _businessDetails(context, ref, business)),
-            QuickAction(icon: Icons.checklist_outlined, label: 'Manage Features', onTap: () => _manageFeatures(context, ref, business)),
-          ],
-        ),
+        const SizedBox(height: 24),
+        // Prominent "Add Features" call-to-action
+        _AddFeaturesCTA(onTap: () => _manageFeatures(context, ref, business)),
       ],
-    );
-  }
-
-  /// Your business plus a few mock nearby competitors, ranked by rating —
-  /// including what each one charges and offers, so a vendor can see not
-  /// just where they rank but what a competitor actually has that they
-  /// don't.
-  List<
-      ({
-        String name,
-        double avgRating,
-        int reviewsCount,
-        bool isYou,
-        double? startingPrice,
-        List<String> topServices,
-        List<String> features,
-      })> _rankedCompetitors(Business business, BusinessStats stats) {
-    final rows = [
-      (
-        name: business.name,
-        avgRating: stats.avgRating,
-        reviewsCount: stats.reviewsCount,
-        isYou: true,
-        startingPrice: business.basePrice,
-        topServices: [for (final service in business.services.take(3)) service.name],
-        features: business.features,
-      ),
-      for (final competitor in generateCompetitors(business))
-        (
-          name: competitor.name,
-          avgRating: competitor.avgRating,
-          reviewsCount: competitor.reviewsCount,
-          isYou: false,
-          startingPrice: competitor.startingPrice,
-          topServices: competitor.topServices,
-          features: competitor.features,
-        ),
-    ];
-    rows.sort((a, b) => b.avgRating.compareTo(a.avgRating));
-    return rows;
-  }
-
-  /// One row of the Market Comparison list — name/rating/reviews plus
-  /// starting price and what it offers. For competitors (not "you"), also
-  /// surfaces amenities they advertise that your own business's feature list
-  /// doesn't, so the comparison answers "what do they have that I don't"
-  /// rather than just "how do we rank".
-  Widget _competitorCard(
-    ({
-      String name,
-      double avgRating,
-      int reviewsCount,
-      bool isYou,
-      double? startingPrice,
-      List<String> topServices,
-      List<String> features,
-    }) row,
-    Business business,
-  ) {
-    final extraFeatures = row.isYou
-        ? const <String>[]
-        : row.features.where((feature) => !business.features.any((mine) => mine.toLowerCase() == feature.toLowerCase())).toList();
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: row.isYou ? AppColors.primaryContainer.withValues(alpha: 0.10) : AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: row.isYou ? Border.all(color: AppColors.primary.withValues(alpha: 0.4)) : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  row.isYou ? 'You (${row.name})' : row.name,
-                  style: AppTextStyles.labelMd(color: row.isYou ? AppColors.primary : AppColors.onSurface),
-                ),
-              ),
-              const Icon(Icons.star, size: 16, color: AppColors.tertiary),
-              const SizedBox(width: 4),
-              Text(row.avgRating.toStringAsFixed(1), style: AppTextStyles.labelMd()),
-              const SizedBox(width: 6),
-              Text('(${row.reviewsCount})', style: AppTextStyles.labelSm()),
-            ],
-          ),
-          if (row.startingPrice != null) ...[
-            const SizedBox(height: 6),
-            Text('Starting at ${row.startingPrice!.toStringAsFixed(0)} ILS', style: AppTextStyles.bodyMd()),
-          ],
-          if (row.topServices.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(row.isYou ? 'Your services' : 'Offers', style: AppTextStyles.labelSm()),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final service in row.topServices)
-                  _chip(service, background: AppColors.surfaceContainerLowest, foreground: AppColors.onSurfaceVariant),
-              ],
-            ),
-          ],
-          if (extraFeatures.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(Icons.info_outline, size: 14, color: AppColors.secondary),
-                const SizedBox(width: 4),
-                Text('Also offers', style: AppTextStyles.labelSm(color: AppColors.secondary)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final feature in extraFeatures)
-                  _chip(feature, background: AppColors.secondaryContainer.withValues(alpha: 0.35), foreground: AppColors.secondary),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String label, {required Color background, required Color foreground}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.full)),
-      child: Text(label, style: AppTextStyles.labelSm(color: foreground)),
     );
   }
 }
 
 /// The Dashboard's top "status card" — business name, an Active & Verified
-/// badge, a Profile Completion progress bar, and two primary actions.
-/// Matches the vendor_dashboard reference's status section exactly (a plain
-/// surface card rather than the app's previous gradient hero banner).
+/// badge, a Profile Completion progress bar, and a compact edit action.
 class _StatusCard extends StatelessWidget {
   const _StatusCard({
     required this.business,
     required this.completionPercent,
     required this.onSwitchBusiness,
-    required this.onNewBookingInquiry,
-    required this.onUpdateListing,
+    required this.onEditInfo,
+    required this.onPreview,
   });
 
   final Business business;
   final int completionPercent;
   final VoidCallback onSwitchBusiness;
-  final VoidCallback onNewBookingInquiry;
-  final VoidCallback onUpdateListing;
+  final VoidCallback onEditInfo;
+  final VoidCallback onPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -439,18 +261,35 @@ class _StatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: onSwitchBusiness,
-            borderRadius: BorderRadius.circular(AppRadius.dflt),
-            child: Row(
-              children: [
-                Expanded(child: Text(business.name, style: AppTextStyles.headlineMd(color: AppColors.primary))),
-                const Icon(Icons.unfold_more_rounded, color: AppColors.onSurfaceVariant),
-              ],
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: onSwitchBusiness,
+                  borderRadius: BorderRadius.circular(AppRadius.dflt),
+                  child: Row(
+                    children: [
+                      Flexible(child: Text(business.name, style: AppTextStyles.headlineMd(color: AppColors.primary))),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.unfold_more_rounded, size: 20, color: AppColors.onSurfaceVariant),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _CompactIconButton(icon: Icons.visibility_outlined, tooltip: 'Preview listing', onPressed: onPreview),
+              const SizedBox(width: 8),
+              _CompactEditButton(onPressed: onEditInfo),
+            ],
           ),
           const SizedBox(height: 12),
-          if (business.status == BusinessStatus.active) const _VerifiedBadge() else StatusPill(status: business.status),
+          Row(
+            children: [
+              StatusPill(status: business.status),
+              const SizedBox(width: 8),
+              if (business.status == BusinessStatus.active) const _PendingBadge(),
+            ],
+          ),
           const SizedBox(height: AppSpacing.gutter),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -469,53 +308,179 @@ class _StatusCard extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation(AppColors.onTertiaryContainer),
             ),
           ),
-          const SizedBox(height: AppSpacing.gutter),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onNewBookingInquiry,
-                  child: const Text('New Booking Inquiry'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onUpdateListing,
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.secondaryContainer,
-                    foregroundColor: AppColors.onSecondaryContainer,
-                    side: BorderSide.none,
-                  ),
-                  child: const Text('Update Listing'),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 }
 
-class _VerifiedBadge extends StatelessWidget {
-  const _VerifiedBadge();
+/// Compact "Edit Your Information" button placed inline in the status card.
+class _CompactEditButton extends StatelessWidget {
+  const _CompactEditButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primaryContainer.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(AppRadius.dflt),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.dflt),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Text('Edit Info', style: AppTextStyles.labelSm(color: AppColors.primary)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact square icon-only button used in the status card header (e.g.
+/// Preview), styled to match [_CompactEditButton].
+class _CompactIconButton extends StatelessWidget {
+  const _CompactIconButton({required this.icon, required this.tooltip, required this.onPressed});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primaryContainer.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(AppRadius.dflt),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.dflt),
+        child: Tooltip(
+          message: tooltip,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Icon(icon, size: 16, color: AppColors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingBadge extends StatelessWidget {
+  const _PendingBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.tertiaryContainer.withValues(alpha: .10),
+        color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.onTertiaryContainer.withValues(alpha: .2)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: .08)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.verified, size: 14, color: AppColors.onTertiaryContainer),
-          const SizedBox(width: 4),
-          Text('Active & Verified', style: AppTextStyles.labelSm(color: AppColors.onTertiaryContainer)),
+          const Icon(Icons.hourglass_top, size: 14, color: AppColors.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text('Pending Verification', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Prominent "Add Features" call-to-action card encouraging vendors to
+/// add more details for better search visibility.
+class _AddFeaturesCTA extends StatelessWidget {
+  const _AddFeaturesCTA({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary,
+            AppColors.primaryContainer.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(Icons.tune_rounded, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add Features',
+                      style: AppTextStyles.headlineMd(color: AppColors.onPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Stand out from the competition',
+                      style: AppTextStyles.labelSm(color: AppColors.onPrimary.withValues(alpha: 0.85)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Businesses with complete profiles and detailed features appear higher in searches and get more customer inquiries. Add your unique offerings to improve visibility.',
+            style: AppTextStyles.bodyMd(color: AppColors.onPrimary.withValues(alpha: 0.9)),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+              label: Text('Manage Features', style: AppTextStyles.labelMd(color: AppColors.primary)),
+            ),
+          ),
         ],
       ),
     );

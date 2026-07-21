@@ -5,6 +5,7 @@ import '../../theme/admin_colors.dart';
 import '../../theme/admin_text_styles.dart';
 import '../../theme/admin_theme.dart';
 import '../../widgets/admin_empty_state.dart';
+import '../../widgets/admin_menu_button.dart';
 import '../../widgets/vendor_status_chip.dart';
 import 'vendor_analytics_screen.dart';
 
@@ -28,7 +29,7 @@ class _AnalyticsHomeScreenState extends ConsumerState<AnalyticsHomeScreen> {
     final filtered = vendors.where((v) => v.businessName.toLowerCase().contains(_query.toLowerCase())).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
+      appBar: AppBar(leading: AdminMenuButton.of(context), title: const Text('Analytics')),
       body: Padding(
         padding: const EdgeInsets.all(AdminSpacing.margin),
         child: Column(

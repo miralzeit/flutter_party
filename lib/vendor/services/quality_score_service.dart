@@ -130,13 +130,6 @@ QualityScoreResult computeQualityScore(Business business) {
       whyItMatters: 'Customers can search for vendors available on specific days.',
     ),
     ChecklistItem(
-      label: 'Cover Video',
-      points: 5,
-      action: QualityAction.businessDetails,
-      done: business.hasCoverVideo,
-      whyItMatters: 'A short video builds more trust than photos alone and keeps customers on your profile longer.',
-    ),
-    ChecklistItem(
       label: 'FAQs',
       points: 4,
       action: QualityAction.businessDetails,
@@ -166,14 +159,6 @@ QualityScoreResult computeQualityScore(Business business) {
         action: QualityAction.manageFeatures,
         done: hasFeature('outdoor'),
         whyItMatters: 'Needed to match outdoor wedding searches.',
-      ),
-    if (isVenueLike)
-      ChecklistItem(
-        label: 'Generator',
-        points: 2,
-        action: QualityAction.manageFeatures,
-        done: hasFeature('generator'),
-        whyItMatters: 'A popular search during summer weddings, when power cuts are a concern.',
       ),
     ChecklistItem(
       label: 'Accessibility Features',

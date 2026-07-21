@@ -5,6 +5,7 @@ import '../providers/admin_providers.dart';
 import '../theme/admin_colors.dart';
 import '../theme/admin_text_styles.dart';
 import '../theme/admin_theme.dart';
+import '../widgets/admin_menu_button.dart';
 import '../widgets/stat_card.dart';
 
 /// Screen — "Overview". The superuser landing page: platform-health stat
@@ -28,7 +29,7 @@ class OverviewScreen extends ConsumerWidget {
     final stats = ref.watch(dashboardStatsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Overview')),
+      appBar: AppBar(leading: AdminMenuButton.of(context), title: const Text('Overview')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 720;
@@ -41,13 +42,17 @@ class OverviewScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text('Welcome back, ${admin.name} · ${admin.roleLabel}', style: AdminTextStyles.bodyLg(color: AdminColors.onSurfaceVariant)),
                 const SizedBox(height: 24),
-                GridView.count(
-                  crossAxisCount: isWide ? 4 : 2,
+                GridView(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: AdminSpacing.gutter,
-                  mainAxisSpacing: AdminSpacing.gutter,
-                  childAspectRatio: isWide ? 1.3 : 0.85,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isWide ? 4 : 2,
+                    crossAxisSpacing: AdminSpacing.gutter,
+                    mainAxisSpacing: AdminSpacing.gutter,
+                    // Fixed height (not an aspect ratio) so the card never
+                    // vertically overflows at the narrow 4-column width.
+                    mainAxisExtent: 172,
+                  ),
                   children: [
                     AdminStatCard(
                       label: 'Total Users',

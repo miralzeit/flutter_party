@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 class AdminColors {
   AdminColors._();
 
-  static const Color primary = Color(0xFF002C2F);
-  static const Color primaryContainer = Color(0xFF054447);
+  static const Color primary = Color(0xFF3E5A6B);
+  static const Color primaryContainer = Color(0xFF4F6F82);
   static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color onPrimaryContainer = Color(0xFF7DB0B4);
+  static const Color onPrimaryContainer = Color(0xFFB9D0DD);
 
   // Tertiary (success / positive status – emerald). The export's vivid
   // accent green lives at the "on-tertiary-container" token (#00c071) and is
@@ -21,6 +21,11 @@ class AdminColors {
   static const Color tertiaryContainer = Color(0xFF004726);
   static const Color onTertiary = Color(0xFFFFFFFF);
   static const Color onTertiaryContainer = Color(0xFF00C071);
+
+  /// Accessible green for *text/labels on light fills* — the vivid [tertiary]
+  /// (#00C071) fails WCAG AA as small text on near-white or on its own 12%
+  /// tint, so a darker emerald is used wherever green reads as words.
+  static const Color tertiaryText = Color(0xFF006C43);
 
   static const Color error = Color(0xFFBA1A1A);
   static const Color errorContainer = Color(0xFFFFDAD6);

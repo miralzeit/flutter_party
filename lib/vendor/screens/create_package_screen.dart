@@ -173,10 +173,19 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
                                   borderRadius: BorderRadius.circular(AppRadius.dflt),
                                   border: Border.all(color: AppColors.tertiary.withValues(alpha: 0.4)),
                                 ),
-                                child: Text(
-                                  '🎉 Customers save ${_savings!.toStringAsFixed(0)} ILS',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.labelMd(color: AppColors.tertiary),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.savings_outlined, size: 16, color: AppColors.tertiary),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        'Customers save ${_savings!.toStringAsFixed(0)} ILS',
+                                        textAlign: TextAlign.center,
+                                        style: AppTextStyles.labelMd(color: AppColors.tertiary),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

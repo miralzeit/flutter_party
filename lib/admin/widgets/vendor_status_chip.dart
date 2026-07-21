@@ -22,7 +22,7 @@ class VendorStatusChip extends StatelessWidget {
         children: [
           Icon(status.icon, size: 14, color: status.color),
           const SizedBox(width: 6),
-          Text(status.label, style: AdminTextStyles.labelSm(color: status.color)),
+          Text(status.label, style: AdminTextStyles.labelSm(color: status.textColor)),
         ],
       ),
     );

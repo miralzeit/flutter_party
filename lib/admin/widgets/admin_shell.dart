@@ -11,6 +11,7 @@ import '../screens/vendors/vendors_screen.dart';
 import '../theme/admin_colors.dart';
 import '../theme/admin_text_styles.dart';
 import '../theme/admin_theme.dart';
+import 'admin_menu_button.dart';
 import 'confirm_dialog.dart';
 
 const _navItems = [
@@ -23,13 +24,6 @@ const _navItems = [
   (AdminSection.broadcast, Icons.campaign_outlined, Icons.campaign, 'Broadcast'),
   (AdminSection.settings, Icons.settings_outlined, Icons.settings, 'Settings'),
 ];
-
-String _titleFor(AdminSection section) {
-  for (final item in _navItems) {
-    if (item.$1 == section) return item.$4;
-  }
-  return '';
-}
 
 /// Persistent left sidebar (docked at [kAdminSidebarBreakpoint]+, collapsing
 /// to a top bar + drawer below it) present on every admin screen. Each
@@ -45,6 +39,7 @@ class AdminShell extends ConsumerStatefulWidget {
 
 class _AdminShellState extends ConsumerState<AdminShell> {
   final _navigatorKeys = {for (final item in _navItems) item.$1: GlobalKey<NavigatorState>()};
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const _roots = <AdminSection, Widget>{
     AdminSection.overview: OverviewScreen(),
@@ -77,19 +72,28 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         final isWide = constraints.maxWidth >= kAdminSidebarBreakpoint;
         if (isWide) {
           return Scaffold(
-            body: Row(
-              children: [
-                const _AdminSidebar(),
-                const VerticalDivider(width: 1, color: AdminColors.outlineVariant),
-                Expanded(child: content),
-              ],
+            body: AdminDrawerScope(
+              openDrawer: null,
+              child: Row(
+                children: [
+                  const _AdminSidebar(),
+                  const VerticalDivider(width: 1, color: AdminColors.outlineVariant),
+                  Expanded(child: content),
+                ],
+              ),
             ),
           );
         }
+        // Narrow layout: the shell owns only the drawer — each section renders
+        // its own AppBar with a menu button (via [AdminMenuButton]), so there's
+        // never a second bar stacked on top of it.
         return Scaffold(
-          appBar: AppBar(title: Text(_titleFor(section))),
+          key: _scaffoldKey,
           drawer: const Drawer(child: _AdminSidebar(inDrawer: true)),
-          body: content,
+          body: AdminDrawerScope(
+            openDrawer: () => _scaffoldKey.currentState?.openDrawer(),
+            child: content,
+          ),
         );
       },
     );

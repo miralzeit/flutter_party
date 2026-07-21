@@ -20,17 +20,19 @@ class LanguageSettingsScreen extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: ListView(
-              children: [
-                for (final language in _languages)
-                  RadioListTile<String>(
-                    title: Text(language, style: AppTextStyles.labelMd()),
-                    value: language,
-                    groupValue: current,
-                    activeColor: AppColors.primary,
-                    onChanged: (value) => Navigator.of(context).pop(value),
-                  ),
-              ],
+            child: RadioGroup<String>(
+              groupValue: current,
+              onChanged: (value) => Navigator.of(context).pop(value),
+              child: ListView(
+                children: [
+                  for (final language in _languages)
+                    RadioListTile<String>(
+                      title: Text(language, style: AppTextStyles.labelMd()),
+                      value: language,
+                      activeColor: AppColors.primary,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

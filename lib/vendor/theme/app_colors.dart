@@ -10,27 +10,30 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Brand / primary
-  static const Color primary = Color(0xFF002C2F);
+  // Brand / primary — a muted steel blue-gray ("Professional Trust" reworked
+  // from the original deep teal to a desaturated slate blue). [primary] is the
+  // darker contrast anchor (button/label text, solid panels); [primaryContainer]
+  // is the medium blue-gray used for most filled surfaces and gradient ends.
+  static const Color primary = Color(0xFF3E5A6B);
   static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color primaryContainer = Color(0xFF054447);
-  static const Color onPrimaryContainer = Color(0xFF7DB0B4);
-  static const Color primaryFixed = Color(0xFFB7ECEF);
-  static const Color primaryFixedDim = Color(0xFF9BD0D3);
-  static const Color onPrimaryFixed = Color(0xFF002021);
-  static const Color onPrimaryFixedVariant = Color(0xFF164E51);
-  static const Color inversePrimary = Color(0xFF9BD0D3);
-  static const Color surfaceTint = Color(0xFF326669);
+  static const Color primaryContainer = Color(0xFF4F6F82);
+  static const Color onPrimaryContainer = Color(0xFFB9D0DD);
+  static const Color primaryFixed = Color(0xFFCBDEE8);
+  static const Color primaryFixedDim = Color(0xFFAFC8D4);
+  static const Color onPrimaryFixed = Color(0xFF0A1D28);
+  static const Color onPrimaryFixedVariant = Color(0xFF34505F);
+  static const Color inversePrimary = Color(0xFFB9D0DD);
+  static const Color surfaceTint = Color(0xFF4F6F82);
 
   // Secondary (used sparingly for links / accents)
-  static const Color secondary = Color(0xFF4F6263);
+  static const Color secondary = Color(0xFF55636E);
   static const Color onSecondary = Color(0xFFFFFFFF);
-  static const Color secondaryContainer = Color(0xFFCFE4E5);
-  static const Color onSecondaryContainer = Color(0xFF536667);
-  static const Color secondaryFixed = Color(0xFFD2E6E7);
-  static const Color secondaryFixedDim = Color(0xFFB6CACB);
-  static const Color onSecondaryFixed = Color(0xFF0B1E20);
-  static const Color onSecondaryFixedVariant = Color(0xFF374A4B);
+  static const Color secondaryContainer = Color(0xFFD4E0E8);
+  static const Color onSecondaryContainer = Color(0xFF51616B);
+  static const Color secondaryFixed = Color(0xFFD7E2E9);
+  static const Color secondaryFixedDim = Color(0xFFBAC8D0);
+  static const Color onSecondaryFixed = Color(0xFF0D1E28);
+  static const Color onSecondaryFixedVariant = Color(0xFF3A4A54);
 
   // Tertiary (success / positive status – emerald). The export's vivid
   // accent green lives at the "on-tertiary-container" token (#00c071) and is
@@ -45,6 +48,12 @@ class AppColors {
   static const Color tertiaryFixedDim = Color(0xFF40E18C);
   static const Color onTertiaryFixed = Color(0xFF00210F);
   static const Color onTertiaryFixedVariant = Color(0xFF00522D);
+
+  // Rating / attention gold — the warm accent used for star ratings and the
+  // "score" progress on the Business Quality Score card. Not part of the
+  // teal/emerald core, but a deliberate, single source for the gold glyphs
+  // that were previously hardcoded per-widget.
+  static const Color ratingGold = Color(0xFFFFD166);
 
   // Error
   static const Color error = Color(0xFFBA1A1A);

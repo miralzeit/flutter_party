@@ -72,7 +72,10 @@ class VendorApplicationDetailScreen extends ConsumerWidget {
     }
 
     if (application == null) {
-      return const Scaffold(body: Center(child: Text('This application no longer exists.')));
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('This application no longer exists.')),
+      );
     }
     final app = application;
     final isOpen = app.stage.isOpen;

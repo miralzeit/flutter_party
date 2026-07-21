@@ -80,7 +80,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ref.read(vendorProvider.notifier).state = null;
     ref.read(businessesProvider.notifier).clear();
     ref.read(activeBusinessIdProvider.notifier).state = null;
-    Navigator.of(context).pushAndRemoveUntil(
+    // Profile lives inside the shell's nested tab Navigator, so the reset must
+    // target the ROOT navigator — otherwise login is pushed *inside* the shell
+    // and the shell's bottom NavigationBar stays on screen, overlapping it.
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginRegisterScreen()),
       (route) => false,
     );

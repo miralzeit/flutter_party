@@ -8,6 +8,7 @@ import '../../theme/admin_text_styles.dart';
 import '../../theme/admin_theme.dart';
 import '../../utils/admin_date_format.dart';
 import '../../widgets/admin_empty_state.dart';
+import '../../widgets/admin_menu_button.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/vendor_status_chip.dart';
 import 'vendor_application_detail_screen.dart';
@@ -71,6 +72,7 @@ class _VendorsScreenState extends ConsumerState<VendorsScreen> with SingleTicker
     ref.listen<VendorStatus?>(vendorsInitialFilterProvider, (previous, next) => _applyDeepLink(next));
     return Scaffold(
       appBar: AppBar(
+        leading: AdminMenuButton.of(context),
         title: const Text('Vendor Management'),
         bottom: TabBar(
           controller: _tabController,

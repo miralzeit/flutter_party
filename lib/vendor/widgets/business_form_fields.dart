@@ -11,14 +11,10 @@ import 'photo_upload.dart';
 /// Callers hold a `GlobalKey<BusinessFormFieldsState>` and call
 /// [BusinessFormFieldsState.validateAndApply] from their own submit action.
 class BusinessFormFields extends StatefulWidget {
-  const BusinessFormFields({super.key, this.initial, this.defaultWhatsapp});
+  const BusinessFormFields({super.key, this.initial});
 
   /// Existing business to prefill from, when editing.
   final Business? initial;
-
-  /// Prefills the business WhatsApp field when there's no [initial] value —
-  /// used during onboarding to default to the vendor's personal WhatsApp.
-  final String? defaultWhatsapp;
 
   @override
   State<BusinessFormFields> createState() => BusinessFormFieldsState();
@@ -31,9 +27,9 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
   late final _priceCtrl = TextEditingController(text: widget.initial?.basePrice?.toString() ?? '');
   late final _cityCtrl = TextEditingController(text: widget.initial?.location ?? '');
   late final _addressCtrl = TextEditingController(text: widget.initial?.address ?? '');
-  late final _whatsappCtrl = TextEditingController(
-    text: (widget.initial?.whatsapp.isNotEmpty ?? false) ? widget.initial!.whatsapp : (widget.defaultWhatsapp ?? ''),
-  );
+  late final _hoursCtrl = TextEditingController(text: widget.initial?.businessHours ?? '');
+  late final _capacityCtrl = TextEditingController(text: widget.initial?.capacity?.toString() ?? '');
+  // business-level WhatsApp removed — prefer vendor personal WhatsApp
   late final _instagramCtrl = TextEditingController(text: widget.initial?.instagram ?? '');
   late final _facebookCtrl = TextEditingController(text: widget.initial?.facebook ?? '');
   late String _category = widget.initial?.category ?? businessCategories.first;
@@ -46,7 +42,9 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
     _priceCtrl.dispose();
     _cityCtrl.dispose();
     _addressCtrl.dispose();
-    _whatsappCtrl.dispose();
+    _hoursCtrl.dispose();
+    _capacityCtrl.dispose();
+    // no whatsapp controller to dispose
     _instagramCtrl.dispose();
     _facebookCtrl.dispose();
     super.dispose();
@@ -64,7 +62,8 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
       ..basePrice = double.tryParse(_priceCtrl.text.trim())
       ..location = _cityCtrl.text.trim()
       ..address = _addressCtrl.text.trim()
-      ..whatsapp = _whatsappCtrl.text.trim()
+      ..businessHours = _hoursCtrl.text.trim()
+      ..capacity = int.tryParse(_capacityCtrl.text.trim())
       ..instagram = _instagramCtrl.text.trim()
       ..facebook = _facebookCtrl.text.trim()
       ..photoCount = _photoCount;
@@ -106,13 +105,24 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
             decoration: const InputDecoration(hintText: 'Street, building, floor...'),
           ),
           const SizedBox(height: 20),
-          const FieldLabel('WhatsApp Number'),
+          const FieldLabel('Business Hours (Optional)'),
           TextFormField(
-            controller: _whatsappCtrl,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(hintText: '059xxxxxxx'),
+            controller: _hoursCtrl,
+            decoration: const InputDecoration(hintText: 'Example: Mon–Sat, 9am–9pm'),
           ),
           const SizedBox(height: 20),
+          const FieldLabel('Capacity — Guests (Optional)'),
+          TextFormField(
+            controller: _capacityCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(hintText: 'Example: 400'),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) return null;
+              return int.tryParse(value.trim()) == null ? 'Enter a whole number.' : null;
+            },
+          ),
+          const SizedBox(height: 20),
+          // Business WhatsApp moved to vendor profile; omit duplicate field.
           const FieldLabel('Description'),
           TextFormField(
             controller: _descriptionCtrl,
@@ -121,7 +131,7 @@ class BusinessFormFieldsState extends State<BusinessFormFields> {
             maxLength: 300,
             decoration: const InputDecoration(hintText: 'Describe your business'),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 20),
           const FieldLabel('Base Price (Optional)'),
           TextFormField(
             controller: _priceCtrl,

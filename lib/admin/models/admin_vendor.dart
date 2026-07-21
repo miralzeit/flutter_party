@@ -37,6 +37,10 @@ extension VendorStatusX on VendorStatus {
     }
   }
 
+  /// Accessible text color for the status label on a light-tinted chip. Only
+  /// the vivid green "Active" needs darkening; warning/error already pass AA.
+  Color get textColor => this == VendorStatus.active ? AdminColors.tertiaryText : color;
+
   IconData get icon {
     switch (this) {
       case VendorStatus.active:

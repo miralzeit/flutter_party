@@ -106,19 +106,26 @@ class _ReportReviewScreenState extends State<ReportReviewScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text('Why are you reporting this review?', style: AppTextStyles.labelMd()),
-                for (final reason in _reportReasons)
-                  RadioListTile<String>(
-                    value: reason,
-                    groupValue: _selectedReason,
-                    onChanged: (value) => setState(() {
-                      _selectedReason = value;
-                      _reasonError = null;
-                    }),
-                    title: Text(reason, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-                    activeColor: AppColors.primary,
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
+                RadioGroup<String>(
+                  groupValue: _selectedReason,
+                  onChanged: (value) => setState(() {
+                    _selectedReason = value;
+                    _reasonError = null;
+                  }),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final reason in _reportReasons)
+                        RadioListTile<String>(
+                          value: reason,
+                          title: Text(reason, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                          activeColor: AppColors.primary,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                    ],
                   ),
+                ),
                 if (_reasonError != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
