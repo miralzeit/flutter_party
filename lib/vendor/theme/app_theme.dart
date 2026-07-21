@@ -92,10 +92,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceContainerLowest,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 18,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         hintStyle: AppTextStyles.bodyMd(color: AppColors.outline),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -129,9 +127,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.outlineVariant),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
           textStyle: AppTextStyles.labelMd(color: AppColors.primary),
         ),
       ),
@@ -144,9 +140,7 @@ class AppTheme {
       ),
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         iconColor: AppColors.primary,
         titleTextStyle: AppTextStyles.labelMd(),
         subtitleTextStyle: AppTextStyles.bodyMd(),
@@ -156,9 +150,7 @@ class AppTheme {
         selectedColor: AppColors.primaryContainer,
         side: BorderSide.none,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.full),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
         labelStyle: AppTextStyles.labelSm(),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -178,12 +170,8 @@ class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: AppColors.surfaceContainerLowest,
         indicatorColor: AppColors.primaryContainer,
-        selectedIconTheme: const IconThemeData(
-          color: AppColors.onPrimaryContainer,
-        ),
-        unselectedIconTheme: const IconThemeData(
-          color: AppColors.onSurfaceVariant,
-        ),
+        selectedIconTheme: const IconThemeData(color: AppColors.onPrimaryContainer),
+        unselectedIconTheme: const IconThemeData(color: AppColors.onSurfaceVariant),
         selectedLabelTextStyle: AppTextStyles.labelSm(color: AppColors.primary),
         unselectedLabelTextStyle: AppTextStyles.labelSm(),
         useIndicator: true,
@@ -208,9 +196,7 @@ class AppTheme {
         backgroundColor: AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: AppTextStyles.headlineMd(),
-        contentTextStyle: AppTextStyles.bodyMd(
-          color: AppColors.onSurfaceVariant,
-        ),
+        contentTextStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -219,9 +205,7 @@ class AppTheme {
         backgroundColor: AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadius.xl),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
