@@ -3,21 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_party/main.dart';
-import 'package:flutter_party/models/marketplace_vendor.dart';
-import 'package:flutter_party/services/security_api_service.dart';
-import 'package:flutter_party/providers/security_provider.dart';
-import 'package:flutter_party/services/user_profile_api_service.dart';
-import 'package:flutter_party/providers/user_profile_provider.dart';
-import 'package:flutter_party/services/chat_api_service.dart';
-import 'package:flutter_party/providers/chat_provider.dart';
-import 'package:flutter_party/services/checklist_api_service.dart';
-import 'package:flutter_party/providers/checklist_provider.dart';
-import 'package:flutter_party/providers/event_provider.dart';
-import 'package:flutter_party/providers/vendor_marketplace_provider.dart';
-import 'package:flutter_party/services/wishlist_api_service.dart';
-import 'package:flutter_party/providers/wishlist_provider.dart';
-import 'package:flutter_party/services/event_api_service.dart';
-import 'package:flutter_party/services/vendor_api_service.dart';
+import 'package:flutter_party/user/models/marketplace_vendor.dart';
+import 'package:flutter_party/user/services/security_api_service.dart';
+import 'package:flutter_party/user/providers/security_provider.dart';
+import 'package:flutter_party/user/services/user_profile_api_service.dart';
+import 'package:flutter_party/user/providers/user_profile_provider.dart';
+import 'package:flutter_party/user/services/chat_api_service.dart';
+import 'package:flutter_party/user/providers/chat_provider.dart';
+import 'package:flutter_party/user/services/checklist_api_service.dart';
+import 'package:flutter_party/user/providers/checklist_provider.dart';
+import 'package:flutter_party/user/providers/event_provider.dart';
+import 'package:flutter_party/user/providers/vendor_marketplace_provider.dart';
+import 'package:flutter_party/user/services/wishlist_api_service.dart';
+import 'package:flutter_party/user/providers/wishlist_provider.dart';
+import 'package:flutter_party/user/services/event_api_service.dart';
+import 'package:flutter_party/user/services/vendor_api_service.dart';
 
 void main() {
   testWidgets('EventFlow home screen renders', (WidgetTester tester) async {

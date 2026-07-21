@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../providers/currency_provider.dart';
-import '../../providers/wishlist_provider.dart';
-import '../../services/wishlist_api_service.dart';
+import '../providers/currency_provider.dart';
+import '../providers/wishlist_provider.dart';
+import '../services/wishlist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/currency_formatter.dart';
+import '../utils/currency_formatter.dart';
 
 const bool _skipWishlistBackend = bool.fromEnvironment(
   'SKIP_WISHLIST_BACKEND',

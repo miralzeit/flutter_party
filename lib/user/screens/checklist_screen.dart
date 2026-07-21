@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../l10n/app_localizations.dart';
-import '../../providers/checklist_provider.dart';
-import '../../services/checklist_api_service.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/checklist_provider.dart';
+import '../services/checklist_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';

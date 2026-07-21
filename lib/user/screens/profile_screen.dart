@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../l10n/app_localizations.dart';
-import '../../providers/checklist_provider.dart';
-import '../../providers/currency_provider.dart';
-import '../../providers/locale_provider.dart';
-import '../../providers/event_provider.dart';
-import '../../providers/user_profile_provider.dart';
-import '../../services/user_profile_api_service.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/checklist_provider.dart';
+import '../providers/currency_provider.dart';
+import '../providers/locale_provider.dart';
+import '../providers/event_provider.dart';
+import '../providers/user_profile_provider.dart';
+import '../services/user_profile_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
-import '../login_register_screen.dart';
+import '../../screens/login_register_screen.dart';
 import 'chat_screen.dart';
 import 'checklist_screen.dart';
 import 'edit_profile_screen.dart';

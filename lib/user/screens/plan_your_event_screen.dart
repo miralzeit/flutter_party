@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../l10n/app_localizations.dart';
-import '../../providers/event_provider.dart';
-import '../../services/event_api_service.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/event_provider.dart';
+import '../services/event_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
@@ -147,7 +147,16 @@ class _PlanYourEventScreenState extends ConsumerState<PlanYourEventScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 26, 20, 24),
               children: [
-                const _TopIcon(),
+                const Stack(
+                  children: [
+                    Center(child: _TopIcon()),
+                    PositionedDirectional(
+                      start: 0,
+                      top: 0,
+                      child: _BackArrowButton(),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 22),
                 const _HeadingBlock(),
                 const SizedBox(height: 34),
@@ -181,6 +190,30 @@ class _PlanYourEventScreenState extends ConsumerState<PlanYourEventScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _BackArrowButton extends StatelessWidget {
+  const _BackArrowButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: context.tr('common.back'),
+      icon: const Icon(Icons.arrow_back_rounded),
+      color: AppColors.eventPrimary,
+      style: IconButton.styleFrom(
+        backgroundColor: AppColors.eventBackground,
+        fixedSize: const Size(44, 44),
+      ),
+      onPressed: () async {
+        final navigator = Navigator.of(context);
+        final didPop = await navigator.maybePop();
+        if (!didPop && context.mounted) {
+          navigator.pushReplacementNamed('/home');
+        }
+      },
     );
   }
 }

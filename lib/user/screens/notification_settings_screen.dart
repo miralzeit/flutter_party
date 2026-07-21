@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../l10n/app_localizations.dart';
-import '../../providers/event_provider.dart';
-import '../../providers/notification_settings_provider.dart';
-import '../../services/notification_settings_api_service.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/event_provider.dart';
+import '../providers/notification_settings_provider.dart';
+import '../services/notification_settings_api_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme.dart';
